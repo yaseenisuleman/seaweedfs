@@ -2925,6 +2925,80 @@ html[data-theme="dark"] .table > thead.table-light {
     background-color: var(--app-grid);
 }
 
+/* Login page (layout.LoginForm): Tabler-style sign-in, a narrow card
+   centred under the brand, using the same tokens as the admin pages. */
+.auth-page {
+    min-height: 100vh;
+    margin: 0;
+    background-color: var(--app-bg);
+}
+
+.auth-shell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2.5rem 1rem;
+}
+
+.auth-brand {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--app-primary);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 26rem;
+}
+
+.auth-card .card-body {
+    padding: 2rem;
+}
+
+.auth-title {
+    margin-bottom: 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--app-heading);
+}
+
+.auth-subtitle {
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    text-align: center;
+    color: var(--app-muted);
+}
+
+.auth-card .btn-primary {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+}
+
+.auth-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    font-size: 0.8125rem;
+    color: var(--app-muted);
+}
+
+.auth-theme-toggle {
+    padding: 0.15rem 0.35rem;
+    color: var(--app-muted);
+    text-decoration: none;
+}
+
+.auth-theme-toggle:hover {
+    color: var(--app-primary);
+}
+
 /* ---------------------------------------------------------------
    Dark theme (all admin pages). Bootstrap switches via data-bs-theme;
    these override the app's own tokens and the few fixed colours.
