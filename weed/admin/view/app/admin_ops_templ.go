@@ -2184,9 +2184,9 @@ func AdminOps(data dash.AdminData) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var131 string
-		templ_7745c5c3_Var131, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(dash.PUrl(ctx, "/static/js/dashboard-charts.js")))
+		templ_7745c5c3_Var131, templ_7745c5c3_Err = templ.ResolveAttributeValue(string(dash.PUrl(ctx, "/static/js/dashboard-charts.js")) + "?v=20260925-2")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/app/admin_ops.templ`, Line: 792, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/app/admin_ops.templ`, Line: 792, Col: 92}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var131)
 		if templ_7745c5c3_Err != nil {

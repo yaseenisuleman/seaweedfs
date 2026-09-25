@@ -8,6 +8,12 @@ import (
     "github.com/seaweedfs/seaweedfs/weed/util/version"
 )
 
+// assetVersion is appended to the admin's own CSS/JS URLs so browsers fetch
+// the new files after a UI update instead of serving a cached copy for up to
+// an hour (static files are sent with max-age=3600). Bump it when admin.css
+// or the admin scripts change.
+const assetVersion = "20260925-2"
+
 script setBasePath(prefix string) {
     window.__BASE_PATH__ = prefix;
 }
@@ -74,7 +80,7 @@ templ Layout(view ViewContext, content templ.Component) {
     <!-- HTMX -->
     <script src={ string(view.P("/static/js/htmx.min.js")) }></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href={ string(view.P("/static/css/admin.css")) }>
+    <link rel="stylesheet" href={ string(view.P("/static/css/admin.css")) + "?v=" + assetVersion }>
     <!-- Set base path for JavaScript -->
     @setBasePath(view.URLPrefix)
 </head>
@@ -408,13 +414,13 @@ templ Layout(view ViewContext, content templ.Component) {
     <!-- Bootstrap JS -->
     <script src={ string(view.P("/static/js/bootstrap.bundle.min.js")) }></script>
     <!-- Modal Alerts JS (replaces native alert/confirm) -->
-    <script src={ string(view.P("/static/js/modal-alerts.js")) }></script>
+    <script src={ string(view.P("/static/js/modal-alerts.js")) + "?v=" + assetVersion }></script>
     <!-- Custom JS -->
-    <script src={ string(view.P("/static/js/admin.js")) }></script>
-    <script src={ string(view.P("/static/js/iam-utils.js")) }></script>
-    <script src={ string(view.P("/static/js/s3tables.js")) }></script>
-    <script src={ string(view.P("/static/js/policy_editor.js")) }></script>
-    <script src={ string(view.P("/static/js/quick-search.js")) }></script>
+    <script src={ string(view.P("/static/js/admin.js")) + "?v=" + assetVersion }></script>
+    <script src={ string(view.P("/static/js/iam-utils.js")) + "?v=" + assetVersion }></script>
+    <script src={ string(view.P("/static/js/s3tables.js")) + "?v=" + assetVersion }></script>
+    <script src={ string(view.P("/static/js/policy_editor.js")) + "?v=" + assetVersion }></script>
+    <script src={ string(view.P("/static/js/quick-search.js")) + "?v=" + assetVersion }></script>
     <script>
         (function () {
             var btn = document.getElementById('theme-toggle');
@@ -466,20 +472,29 @@ templ LoginForm(title string, errorMessage string, csrfToken string) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href={ prefix + "/static/css/bootstrap.min.css" } rel="stylesheet">
     <link href={ prefix + "/static/css/bootstrap-icons.min.css" } rel="stylesheet">
-    <link href={ prefix + "/static/css/admin.css" } rel="stylesheet">
+    <link href={ prefix + "/static/css/admin.css?v=" + assetVersion } rel="stylesheet">
 </head>
 <body class="auth-page">
-    <main class="auth-shell">
-        <div class="auth-brand">
-            <span class="app-brand-icon"><i class="bi bi-server"></i></span>
-            SeaweedFS
-            <small class="sidebar-brand-tag">Admin</small>
-        </div>
+    <!-- Decorative rings behind the card -->
+    <div class="auth-rings" aria-hidden="true">
+        <span class="auth-ring auth-ring-1"></span>
+        <span class="auth-ring auth-ring-2"></span>
+        <span class="auth-ring auth-ring-3"></span>
+        <span class="auth-ring auth-ring-4"></span>
+    </div>
 
-        <div class="card auth-card">
-            <div class="card-body">
-                <h1 class="auth-title">Sign in to your account</h1>
-                <p class="auth-subtitle">Manage your SeaweedFS cluster</p>
+    <main class="auth-shell">
+        <div class="auth-card">
+            <!-- Sign-in form -->
+            <section class="auth-form">
+                <div class="auth-brand">
+                    <span class="app-brand-icon"><i class="bi bi-server"></i></span>
+                    SeaweedFS
+                    <small class="sidebar-brand-tag">Admin</small>
+                </div>
+
+                <h1 class="auth-title">Welcome back</h1>
+                <p class="auth-subtitle">Sign in to manage your SeaweedFS cluster.</p>
 
                 if errorMessage != "" {
                     <div class="alert alert-danger" role="alert">
@@ -490,38 +505,75 @@ templ LoginForm(title string, errorMessage string, csrfToken string) {
 
                 <form method="POST" action={ templ.SafeURL(prefix + "/login") }>
                     <input type="hidden" name="csrf_token" value={ csrfToken }>
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-person"></i>
-                            </span>
-                            <input type="text" class="form-control" id="username" name="username" placeholder="Your username" autocomplete="username" autofocus required>
-                        </div>
+                    <div class="auth-fields">
+                        <label class="auth-field" for="username">
+                            <span class="auth-field-label">Username</span>
+                            <input type="text" id="username" name="username" placeholder="Your username" autocomplete="username" autofocus required>
+                        </label>
+                        <label class="auth-field" for="password">
+                            <span class="auth-field-label">Password</span>
+                            <input type="password" id="password" name="password" placeholder="Your password" autocomplete="current-password" required>
+                        </label>
                     </div>
 
-                    <div class="mb-4">
-                        <label for="password" class="form-label">Password</label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-lock"></i>
-                            </span>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Your password" autocomplete="current-password" required>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                    <button type="submit" class="btn btn-primary auth-submit">
+                        Sign in<i class="bi bi-arrow-right ms-2"></i>
                     </button>
                 </form>
-            </div>
-        </div>
 
-        <div class="auth-footer">
-            <span>{title}</span>
-            <button type="button" class="btn btn-link auth-theme-toggle" id="auth-theme-toggle" title="Toggle light/dark theme" aria-label="Toggle light/dark theme">
-                <i class="bi bi-moon"></i>
-            </button>
+                <div class="auth-footer">
+                    <span>{title}</span>
+                    <button type="button" class="auth-theme-toggle" id="auth-theme-toggle" title="Toggle light/dark theme" aria-label="Toggle light/dark theme">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Illustration panel -->
+            <section class="auth-art" aria-hidden="true">
+                <svg viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg">
+                    <!-- cloud -->
+                    <path class="art-cloud" d="M104 118c0-26 21-47 47-47 18 0 34 10 42 25 5-2 11-3 17-3 23 0 42 19 42 42 0 1 0 3-.1 4 16 4 28 18 28 35 0 20-16 36-36 36H118c-22 0-40-18-40-40 0-20 14-36 33-39-4-4-7-8-7-13z"/>
+                    <!-- floor shadow -->
+                    <ellipse class="art-shadow" cx="210" cy="300" rx="150" ry="14"/>
+                    <!-- server rack -->
+                    <rect class="art-rack" x="150" y="150" width="120" height="148" rx="12"/>
+                    <rect class="art-unit" x="164" y="166" width="92" height="32" rx="6"/>
+                    <rect class="art-unit" x="164" y="208" width="92" height="32" rx="6"/>
+                    <rect class="art-unit" x="164" y="250" width="92" height="32" rx="6"/>
+                    <circle class="art-led-ok" cx="178" cy="182" r="4"/>
+                    <circle class="art-led-ok" cx="178" cy="224" r="4"/>
+                    <circle class="art-led-warn" cx="178" cy="266" r="4"/>
+                    <rect class="art-slot" x="192" y="179" width="50" height="6" rx="3"/>
+                    <rect class="art-slot" x="192" y="221" width="50" height="6" rx="3"/>
+                    <rect class="art-slot" x="192" y="263" width="50" height="6" rx="3"/>
+                    <!-- bucket (left) -->
+                    <path class="art-bucket" d="M62 226h64l-8 70c-1 6-6 10-12 10H82c-6 0-11-4-12-10z"/>
+                    <ellipse class="art-bucket-top" cx="94" cy="226" rx="32" ry="9"/>
+                    <!-- volume cylinder (right) -->
+                    <path class="art-disk" d="M300 226v60c0 8 20 14 44 14s44-6 44-14v-60z"/>
+                    <ellipse class="art-disk-top" cx="344" cy="226" rx="44" ry="14"/>
+                    <path class="art-disk-line" d="M300 248c0 8 20 14 44 14s44-6 44-14M300 268c0 8 20 14 44 14s44-6 44-14"/>
+                    <!-- data links -->
+                    <path class="art-link" d="M126 250c14 0 14-20 24-20M270 230c14 0 16 16 30 16"/>
+                    <circle class="art-dot" cx="138" cy="240" r="4"/>
+                    <circle class="art-dot" cx="286" cy="238" r="4"/>
+                    <!-- files flying up to the cloud -->
+                    <g class="art-file" transform="translate(222 92) rotate(12)">
+                        <rect width="34" height="42" rx="5"/>
+                        <rect class="art-file-line" x="7" y="12" width="20" height="4" rx="2"/>
+                        <rect class="art-file-line" x="7" y="21" width="14" height="4" rx="2"/>
+                    </g>
+                    <g class="art-file art-file-2" transform="translate(120 60) rotate(-10)">
+                        <rect width="28" height="34" rx="5"/>
+                        <rect class="art-file-line" x="6" y="10" width="16" height="4" rx="2"/>
+                    </g>
+                    <circle class="art-spark" cx="300" cy="80" r="6"/>
+                    <circle class="art-spark-sm" cx="330" cy="120" r="3"/>
+                    <circle class="art-spark-sm" cx="70" cy="150" r="3"/>
+                </svg>
+                <p class="auth-art-caption">Distributed storage for billions of files.</p>
+            </section>
         </div>
     </main>
 

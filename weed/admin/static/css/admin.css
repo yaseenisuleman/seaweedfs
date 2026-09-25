@@ -2925,79 +2925,289 @@ html[data-theme="dark"] .table > thead.table-light {
     background-color: var(--app-grid);
 }
 
-/* Login page (layout.LoginForm): Tabler-style sign-in, a narrow card
-   centred under the brand, using the same tokens as the admin pages. */
+/* Login page (layout.LoginForm): a split card centred on a blue page with
+   decorative rings. Sign-in form on the left, illustration on the right. */
 .auth-page {
+    position: relative;
     min-height: 100vh;
     margin: 0;
-    background-color: var(--app-bg);
+    overflow-x: hidden;
+    background: linear-gradient(160deg, #4a90f7 0%, #2f7cf0 45%, var(--app-primary) 100%);
+}
+
+.auth-rings {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.auth-ring {
+    position: absolute;
+    border-radius: 50%;
+}
+
+/* large arcs top-right */
+.auth-ring-1 {
+    top: -22rem;
+    right: -14rem;
+    width: 46rem;
+    height: 46rem;
+    border: 2.25rem solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 0 0 3.5rem rgba(22, 32, 92, 0.45), 0 0 0 6.5rem rgba(255, 255, 255, 0.08);
+}
+
+.auth-ring-2 {
+    top: -8rem;
+    right: 18%;
+    width: 12rem;
+    height: 12rem;
+    border: 0.9rem solid rgba(255, 255, 255, 0.14);
+}
+
+/* arcs bottom-left */
+.auth-ring-3 {
+    bottom: -16rem;
+    left: -16rem;
+    width: 32rem;
+    height: 32rem;
+    border: 1.5rem solid rgba(22, 32, 92, 0.55);
+    box-shadow: 0 0 0 2.5rem rgba(255, 255, 255, 0.12);
+}
+
+.auth-ring-4 {
+    bottom: 3rem;
+    left: 2.5rem;
+    width: 4rem;
+    height: 4rem;
+    border: 0.6rem solid rgba(22, 32, 92, 0.6);
+    background: radial-gradient(circle, rgba(22, 32, 92, 0.6) 0 34%, transparent 36%);
 }
 
 .auth-shell {
+    position: relative;
+    z-index: 1;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 2.5rem 1rem;
+    padding: 2rem 1rem;
+}
+
+.auth-card {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    width: 100%;
+    max-width: 60rem;
+    min-height: 30rem;
+    overflow: hidden;
+    border-radius: 1rem;
+    background-color: var(--app-surface);
+    box-shadow: 0 1.5rem 4rem rgba(12, 24, 70, 0.35);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem 3.25rem;
 }
 
 .auth-brand {
     display: flex;
     align-items: center;
-    margin-bottom: 1.75rem;
-    font-size: 1.35rem;
+    margin-bottom: 2.5rem;
+    font-size: 1.15rem;
     font-weight: 600;
     color: var(--app-primary);
 }
 
-.auth-card {
-    width: 100%;
-    max-width: 26rem;
-}
-
-.auth-card .card-body {
-    padding: 2rem;
+.auth-brand .app-brand-icon {
+    width: 2rem;
+    height: 2rem;
+    margin-right: 0.55rem;
+    font-size: 1rem;
 }
 
 .auth-title {
-    margin-bottom: 0.25rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-    text-align: center;
-    color: var(--app-heading);
+    margin-bottom: 0.4rem;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--app-primary);
 }
 
 .auth-subtitle {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.75rem;
     font-size: 0.875rem;
-    text-align: center;
     color: var(--app-muted);
 }
 
-.auth-card .btn-primary {
-    padding-top: 0.55rem;
-    padding-bottom: 0.55rem;
+/* Stacked fields in one bordered box, the focused one marked on the left */
+.auth-fields {
+    overflow: hidden;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-sm);
+}
+
+.auth-field {
+    position: relative;
+    display: block;
+    margin: 0;
+    padding: 0.6rem 0.9rem 0.55rem;
+    background-color: var(--app-surface);
+    cursor: text;
+}
+
+.auth-field + .auth-field {
+    border-top: 1px solid var(--app-border);
+}
+
+.auth-field:focus-within {
+    box-shadow: inset 3px 0 0 var(--app-primary);
+}
+
+.auth-field-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--app-muted);
+}
+
+.auth-field input {
+    width: 100%;
+    padding: 0.15rem 0 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-size: 0.9375rem;
+    color: var(--app-heading);
+}
+
+.auth-field input::placeholder {
+    color: var(--app-muted);
+    opacity: 0.7;
+}
+
+.auth-form .alert {
+    margin-bottom: 1rem;
+}
+
+.auth-submit {
+    align-self: flex-start;
+    min-width: 9rem;
+    margin-top: 1.5rem;
+    padding: 0.6rem 1.4rem;
+    font-weight: 500;
 }
 
 .auth-footer {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-top: 1.25rem;
+    margin-top: 2.5rem;
     font-size: 0.8125rem;
     color: var(--app-muted);
 }
 
 .auth-theme-toggle {
     padding: 0.15rem 0.35rem;
+    border: 0;
+    background: none;
     color: var(--app-muted);
-    text-decoration: none;
 }
 
 .auth-theme-toggle:hover {
     color: var(--app-primary);
 }
+
+/* Illustration panel */
+.auth-art {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem;
+    background-color: #f3f4f6;
+}
+
+.auth-art svg {
+    width: 100%;
+    max-width: 24rem;
+    height: auto;
+}
+
+.auth-art-caption {
+    margin: 1rem 0 0;
+    font-size: 0.875rem;
+    color: var(--app-muted);
+}
+
+.art-cloud       { fill: #dbe7fb; }
+.art-shadow      { fill: rgba(31, 42, 107, 0.08); }
+.art-rack        { fill: #1f2a6b; }
+.art-unit        { fill: #2c3a8c; }
+.art-slot        { fill: #4b5cc4; }
+.art-led-ok      { fill: #5fd373; }
+.art-led-warn    { fill: #f5b82e; }
+.art-bucket      { fill: var(--app-primary); }
+.art-bucket-top  { fill: #5b9cf5; }
+.art-disk        { fill: #8fb4ff; }
+.art-disk-top    { fill: #b9d0ff; }
+.art-disk-line   { fill: none; stroke: #6d98ef; stroke-width: 2; }
+.art-link        { fill: none; stroke: #1f2a6b; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 7; }
+.art-dot         { fill: #f5b82e; }
+.art-file rect   { fill: #ffffff; }
+.art-file > rect:first-child { stroke: #1f2a6b; stroke-width: 2.5; }
+.art-file-line   { fill: #8fb4ff !important; stroke: none !important; }
+.art-spark       { fill: #f5b82e; }
+.art-spark-sm    { fill: var(--app-primary); }
+
+/* Phones: form only, full width */
+@media (max-width: 767.98px) {
+    .auth-card {
+        grid-template-columns: 1fr;
+        max-width: 26rem;
+        min-height: 0;
+    }
+
+    .auth-art {
+        display: none;
+    }
+
+    .auth-form {
+        padding: 2rem 1.5rem;
+    }
+
+    .auth-submit {
+        align-self: stretch;
+    }
+}
+
+html[data-theme="dark"] .auth-page {
+    background: linear-gradient(160deg, #15233f 0%, #101a30 60%, #0c1424 100%);
+}
+
+html[data-theme="dark"] .auth-ring-1 {
+    border-color: rgba(66, 153, 225, 0.14);
+    box-shadow: 0 0 0 3.5rem rgba(0, 0, 0, 0.25), 0 0 0 6.5rem rgba(66, 153, 225, 0.06);
+}
+
+html[data-theme="dark"] .auth-ring-2 { border-color: rgba(66, 153, 225, 0.12); }
+html[data-theme="dark"] .auth-ring-3 { border-color: rgba(66, 153, 225, 0.16); box-shadow: 0 0 0 2.5rem rgba(255, 255, 255, 0.04); }
+
+html[data-theme="dark"] .auth-card {
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="dark"] .auth-art {
+    background-color: #1b1b1b;
+}
+
+html[data-theme="dark"] .art-cloud { fill: #24324d; }
+html[data-theme="dark"] .art-shadow { fill: rgba(0, 0, 0, 0.3); }
+html[data-theme="dark"] .art-file rect { fill: #2a2a2a; }
+html[data-theme="dark"] .art-file > rect:first-child { stroke: #8fb4ff; }
+html[data-theme="dark"] .art-link { stroke: #8fb4ff; }
 
 /* ---------------------------------------------------------------
    Dark theme (all admin pages). Bootstrap switches via data-bs-theme;
