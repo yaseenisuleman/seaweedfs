@@ -6,16 +6,22 @@ import (
 )
 
 templ Groups(data dash.GroupsPageData) {
+    {{
+        members, groupPolicies := 0, 0
+        for _, g := range data.Groups {
+            members += g.MemberCount
+            groupPolicies += g.PolicyCount
+        }
+    }}
     <div class="container-fluid">
         <!-- Page Header -->
-        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div class="tb-page-header">
             <div>
-                <h1 class="h3 mb-0 text-gray-800">
-                    <i class="bi bi-people-fill me-2"></i>Groups
-                </h1>
-                <p class="mb-0 text-muted">Manage IAM groups for organizing users and policies</p>
+                <div class="tb-pretitle">Object Store</div>
+                <h2 class="tb-page-title"><i class="bi bi-people-fill me-2 text-secondary"></i>Groups</h2>
+                <p class="mb-0 mt-1 text-muted">Manage IAM groups for organizing users and policies</p>
             </div>
-            <div class="d-flex gap-2">
+            <div class="tb-page-actions">
                 <button type="button" class="btn btn-primary"
                         data-bs-toggle="modal"
                         data-bs-target="#createGroupModal">
@@ -25,42 +31,48 @@ templ Groups(data dash.GroupsPageData) {
         </div>
 
         <!-- Summary Cards -->
-        <div class="row mb-4">
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-primary shadow h-100 py-2">
+        <div class="row row-deck g-3 mb-3">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Total Groups
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {fmt.Sprintf("%d", data.TotalGroups)}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-people-fill icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Total groups</div>
                         </div>
+                        <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalGroups) }</span></div>
+                        <div class="tb-stat-text">{ fmt.Sprintf("%d disabled", data.TotalGroups-data.ActiveGroups) }</div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-success shadow h-100 py-2">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                    Active Groups
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {fmt.Sprintf("%d", data.ActiveGroups)}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-check-circle icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Active groups</div>
                         </div>
+                        <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.ActiveGroups) }</span></div>
+                        <div class="tb-stat-text">Enabled and applying policies</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Members</div>
+                        </div>
+                        <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", members) }</span></div>
+                        <div class="tb-stat-text">{ fmt.Sprintf("of %d available users", len(data.AvailableUsers)) }</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Policies attached</div>
+                        </div>
+                        <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", groupPolicies) }</span></div>
+                        <div class="tb-stat-text">{ fmt.Sprintf("of %d available policies", len(data.AvailablePolicies)) }</div>
                     </div>
                 </div>
             </div>

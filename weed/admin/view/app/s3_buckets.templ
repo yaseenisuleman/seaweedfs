@@ -6,87 +6,94 @@ import (
 )
 
 templ S3Buckets(data dash.S3BucketsData) {
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">
-            <i class="bi bi-box me-2"></i>Object Store Buckets
-        </h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group me-2">
-                <select class="form-select form-select-sm me-2" id="pageSizeSelect" onchange="changePageSize()" style="width: auto;">
-                    <option value="50" if data.PageSize == 50 { selected="selected" }>50 per page</option>
-                    <option value="100" if data.PageSize == 100 { selected="selected" }>100 per page</option>
-                    <option value="200" if data.PageSize == 200 { selected="selected" }>200 per page</option>
-                    <option value="500" if data.PageSize == 500 { selected="selected" }>500 per page</option>
-                </select>
-                <button type="button" class="btn btn-sm btn-primary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#createBucketModal">
-                    <i class="bi bi-plus me-1"></i>Create Bucket
-                </button>
-            </div>
+    {{
+        versioned, locked, quotas, withPolicy, owned := 0, 0, 0, 0, 0
+        for _, b := range data.Buckets {
+            if b.VersioningStatus == "Enabled" {
+                versioned++
+            }
+            if b.ObjectLockEnabled {
+                locked++
+            }
+            if b.QuotaEnabled {
+                quotas++
+            }
+            if b.PolicyStatementCount > 0 {
+                withPolicy++
+            }
+            if b.Owner != "" {
+                owned++
+            }
+        }
+        pageNote := ""
+        if data.TotalPages > 1 {
+            pageNote = " on this page"
+        }
+    }}
+    <div class="tb-page-header">
+        <div>
+            <div class="tb-pretitle">Object Store</div>
+            <h2 class="tb-page-title"><i class="bi bi-box me-2 text-secondary"></i>Buckets</h2>
+        </div>
+        <div class="tb-page-actions">
+            <select class="form-select form-select-sm" id="pageSizeSelect" onchange="changePageSize()" style="width: auto;">
+                <option value="50" if data.PageSize == 50 { selected="selected" }>50 per page</option>
+                <option value="100" if data.PageSize == 100 { selected="selected" }>100 per page</option>
+                <option value="200" if data.PageSize == 200 { selected="selected" }>200 per page</option>
+                <option value="500" if data.PageSize == 500 { selected="selected" }>500 per page</option>
+            </select>
+            <button type="button" class="btn btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createBucketModal">
+                <i class="bi bi-plus me-1"></i>Create Bucket
+            </button>
         </div>
     </div>
 
     <div id="s3-buckets-content">
         <!-- Summary Cards -->
-        <div class="row mb-4">
-            <div class="col-xl-4 col-md-6 mb-4">
-                <div class="card border-left-primary shadow h-100 py-2">
+        <div class="row row-deck g-3 mb-3">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Total Buckets
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {fmt.Sprintf("%d", data.TotalBuckets)}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-box icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Buckets</div>
                         </div>
+                        <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalBuckets) }</span></div>
+                        <div class="tb-stat-text">{ fmt.Sprintf("%d with an owner, %d admin-only%s", owned, len(data.Buckets)-owned, pageNote) }</div>
                     </div>
                 </div>
             </div>
-
-            <div class="col-xl-4 col-md-6 mb-4">
-                <div class="card border-left-success shadow h-100 py-2">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                    Total Storage
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {formatBytes(data.TotalSize)}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-device-hdd icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Total storage</div>
                         </div>
+                        <div class="tb-stat-value"><span class="num">{ formatBytes(data.TotalSize) }</span></div>
+                        <div class="tb-stat-text">Physical size across buckets</div>
                     </div>
                 </div>
             </div>
-
-
-            <div class="col-xl-4 col-md-6 mb-4">
-                <div class="card border-left-warning shadow h-100 py-2">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                    Last Updated
-                                </div>
-                                <div class="h6 mb-0 font-weight-bold text-gray-800">
-                                    {data.LastUpdated.Format("15:04:05")}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-clock icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Versioning</div>
                         </div>
+                        <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", versioned) }</span></div>
+                        <div class="tb-stat-text">{ fmt.Sprintf("%d with object lock%s", locked, pageNote) }</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Quotas</div>
+                        </div>
+                        <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", quotas) }</span></div>
+                        <div class="tb-stat-text">{ fmt.Sprintf("%d with a bucket policy%s", withPolicy, pageNote) }</div>
                     </div>
                 </div>
             </div>

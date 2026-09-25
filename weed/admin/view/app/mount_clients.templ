@@ -6,38 +6,76 @@ import (
 )
 
 templ MountClients(data dash.MountClientsData) {
-	<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-		<h1 class="h2">
-			<i class="bi bi-plug me-2"></i>Mount Clients
-		</h1>
-		<div class="btn-toolbar mb-2 mb-md-0">
-			<div class="btn-group me-2">
-				<button type="button" class="btn btn-sm btn-outline-primary" onclick="exportMountClients()">
-					<i class="bi bi-download me-1"></i>Export
-				</button>
-			</div>
+	{{
+		goMounts, vfsMounts := 0, 0
+		filerSet := map[string]bool{}
+		for _, c := range data.MountClients {
+			if c.ClientType == "sw-vfs" {
+				vfsMounts++
+			} else {
+				goMounts++
+			}
+			if c.FilerAddress != "" {
+				filerSet[c.FilerAddress] = true
+			}
+		}
+	}}
+	<div class="tb-page-header">
+		<div>
+			<div class="tb-pretitle">Cluster</div>
+			<h2 class="tb-page-title"><i class="bi bi-plug me-2 text-secondary"></i>Mount Clients</h2>
+		</div>
+		<div class="tb-page-actions">
+			<button type="button" class="btn tb-btn" onclick="exportMountClients()">
+				<i class="bi bi-download me-1"></i>Export
+			</button>
 		</div>
 	</div>
 
-	<div id="mount-clients-content">
+	<div id="mount-clients-content" class="ops">
 		<!-- Summary Cards -->
-		<div class="row mb-4">
-			<div class="col-xl-12 col-md-12 mb-4">
-				<div class="card border-left-info shadow h-100 py-2">
+		<div class="row row-deck g-3 mb-3">
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-									Connected Mount Clients
-								</div>
-								<div class="h5 mb-0 font-weight-bold text-gray-800">
-									{ fmt.Sprintf("%d", data.TotalMountClients) }
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-plug icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Connected clients</div>
 						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalMountClients) }</span></div>
+						<div class="tb-stat-text">Connected FUSE/VFS mount clients</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">FUSE mounts</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", goMounts) }</span></div>
+						<div class="tb-stat-text"><span class="mono">weed mount</span> (Go)</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">VFS mounts</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", vfsMounts) }</span></div>
+						<div class="tb-stat-text"><span class="mono">sw-vfs</span> (Rust)</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Filers serving</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", len(filerSet)) }</span></div>
+						<div class="tb-stat-text">Filers with mounts attached</div>
 					</div>
 				</div>
 			</div>

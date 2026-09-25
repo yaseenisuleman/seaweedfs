@@ -9,11 +9,24 @@ import (
 )
 
 templ ClusterEcVolumes(data dash.ClusterEcVolumesData) {
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    {{
+        expectedShards := data.TotalVolumes * erasure_coding.TotalShardsCount
+        shardPct := 0
+        if expectedShards > 0 {
+            shardPct = data.TotalShards * 100 / expectedShards
+            if shardPct > 100 {
+                shardPct = 100
+            }
+        }
+        shardLevel := "ok"
+        if shardPct < 100 {
+            shardLevel = "warn"
+        }
+    }}
+    <div class="tb-page-header">
         <div>
-            <h1 class="h2">
-                <i class="bi bi-database me-2"></i>EC Volumes
-            </h1>
+            <div class="tb-pretitle">Storage</div>
+            <h2 class="tb-page-title"><i class="bi bi-grid-3x3-gap me-2 text-secondary"></i>EC Volumes</h2>
             if data.Collection != "" {
                 <div class="d-flex align-items-center mt-2">
                     if data.Collection == "default" {
@@ -31,82 +44,73 @@ templ ClusterEcVolumes(data dash.ClusterEcVolumesData) {
                 </div>
             }
         </div>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group me-2">
-                <select class="form-select form-select-sm me-2" id="pageSizeSelect" onchange="changePageSize(this.value)" style="width: auto;">
-                    <option value="5" if data.PageSize == 5 { selected="selected" }>5 per page</option>
-                    <option value="10" if data.PageSize == 10 { selected="selected" }>10 per page</option>
-                    <option value="25" if data.PageSize == 25 { selected="selected" }>25 per page</option>
-                    <option value="50" if data.PageSize == 50 { selected="selected" }>50 per page</option>
-                    <option value="100" if data.PageSize == 100 { selected="selected" }>100 per page</option>
-                </select>
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.location.reload()">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-                </button>
-            </div>
+        <div class="tb-page-actions">
+            <select class="form-select form-select-sm" id="pageSizeSelect" onchange="changePageSize(this.value)" style="width: auto;">
+                <option value="5" if data.PageSize == 5 { selected="selected" }>5 per page</option>
+                <option value="10" if data.PageSize == 10 { selected="selected" }>10 per page</option>
+                <option value="25" if data.PageSize == 25 { selected="selected" }>25 per page</option>
+                <option value="50" if data.PageSize == 50 { selected="selected" }>50 per page</option>
+                <option value="100" if data.PageSize == 100 { selected="selected" }>100 per page</option>
+            </select>
+            <button type="button" class="btn tb-btn" onclick="window.location.reload()">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+            </button>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-bg-primary">
+    <div class="row row-deck g-3 mb-3">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card tb-stat h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title">Total Volumes</h6>
-                            <h4 class="mb-0">{fmt.Sprintf("%d", data.TotalVolumes)}</h4>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bi bi-boxes icon-2x"></i>
-                        </div>
+                        <div class="subheader">EC volumes</div>
+                        <span class="tb-stat-side">{ fmt.Sprintf("%d+%d scheme", erasure_coding.DataShardsCount, erasure_coding.ParityShardsCount) }</span>
                     </div>
+                    <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalVolumes) }</span></div>
+                    <div class="tb-stat-text">Erasure-coded volumes</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-bg-info">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card tb-stat h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title">Total Shards</h6>
-                            <h4 class="mb-0">{fmt.Sprintf("%d", data.TotalShards)}</h4>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bi bi-puzzle icon-2x"></i>
-                        </div>
+                        <div class="subheader">Total shards</div>
                     </div>
+                    <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalShards) }</span></div>
+                    <div class="d-flex justify-content-between tb-stat-text">
+                        <span>Shards present</span>
+                        <span class="num">{ fmt.Sprintf("%d / %d", data.TotalShards, expectedShards) }</span>
+                    </div>
+                    <div class={ "tb-progress", "is-" + shardLevel }><span style={ fmt.Sprintf("width: %d%%", shardPct) }></span></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-bg-success">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card tb-stat h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title">Healthy Volumes</h6>
-                            <h4 class="mb-0">{fmt.Sprintf("%d", data.CompleteVolumes)}</h4>
-                            <small>All { fmt.Sprintf("%d", erasure_coding.TotalShardsCount) } shards present</small>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bi bi-check-circle icon-2x"></i>
-                        </div>
+                        <div class="subheader">Healthy volumes</div>
                     </div>
+                    <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.CompleteVolumes) }</span></div>
+                    <div class="tb-stat-text"><span class="status-dot is-ok me-1"></span>All { fmt.Sprintf("%d", erasure_coding.TotalShardsCount) } shards present</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-bg-warning">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card tb-stat h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title">Degraded Volumes</h6>
-                            <h4 class="mb-0">{fmt.Sprintf("%d", data.IncompleteVolumes)}</h4>
-                            <small>Incomplete/Critical</small>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bi bi-exclamation-triangle icon-2x"></i>
-                        </div>
+                        <div class="subheader">Degraded volumes</div>
+                    </div>
+                    <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.IncompleteVolumes) }</span></div>
+                    <div class="tb-stat-text">
+                        if data.IncompleteVolumes > 0 {
+                            <span class="status-dot is-warn me-1"></span>Incomplete/Critical
+                        } else {
+                            <span class="status-dot is-ok me-1"></span>No missing shards
+                        }
                     </div>
                 </div>
             </div>
@@ -122,6 +126,11 @@ templ ClusterEcVolumes(data dash.ClusterEcVolumesData) {
     </div>
 
     <!-- Volumes Table -->
+    <div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-grid-3x3-gap me-2"></i>EC Volumes</h5>
+    </div>
+    <div class="card-body">
     <div class="table-responsive">
         <table class="table table-striped table-hover" id="ecVolumesTable">
             <thead>
@@ -247,6 +256,8 @@ templ ClusterEcVolumes(data dash.ClusterEcVolumesData) {
                 }
             </tbody>
         </table>
+    </div>
+    </div>
     </div>
 
     <!-- Pagination -->

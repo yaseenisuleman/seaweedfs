@@ -16,66 +16,66 @@ script changePageSize(path string, lastFileName string, pageSizeSelectId string)
 }
 
 templ FileBrowser(data dash.FileBrowserData) {
-	<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-		<h1 class="h2">
-		if data.IsTableBucketPath && data.TableBucketName != "" {
-			<i class="bi bi-table me-2"></i>Table Bucket: {data.TableBucketName}
-		} else if data.IsBucketPath && data.BucketName != "" {
-			<i class="bi bi-box me-2"></i>S3 Bucket: {data.BucketName}
-		} else {
-			<i class="bi bi-folder2-open me-2"></i>File Browser
-		}
-		</h1>
-		<div class="btn-toolbar mb-2 mb-md-0">
-			<div class="btn-group me-2">
+	<div class="tb-page-header">
+		<div>
+			<div class="tb-pretitle">Management</div>
+			<h2 class="tb-page-title">
 			if data.IsTableBucketPath && data.TableBucketName != "" {
-				<a href={ dash.PUrl(ctx, "/object-store/s3tables/buckets") } class="btn btn-sm btn-outline-secondary">
+				<i class="bi bi-table me-2 text-secondary"></i>Table Bucket: {data.TableBucketName}
+			} else if data.IsBucketPath && data.BucketName != "" {
+				<i class="bi bi-box me-2 text-secondary"></i>S3 Bucket: {data.BucketName}
+			} else {
+				<i class="bi bi-folder2-open me-2 text-secondary"></i>File Browser
+			}
+			</h2>
+			<!-- Breadcrumb Navigation -->
+			<nav aria-label="breadcrumb" class="mt-2">
+				<ol class="breadcrumb mb-0">
+					for i, crumb := range data.Breadcrumbs {
+						if i == len(data.Breadcrumbs)-1 {
+							<li class="breadcrumb-item active" aria-current="page">
+								<a href={ dash.PUrl(ctx, fileBrowserPathURL(crumb.Path)) } class="text-decoration-none">
+									{ crumb.Name }
+								</a>
+							</li>
+						} else {
+							<li class="breadcrumb-item">
+								<a href={ dash.PUrl(ctx, fileBrowserPathURL(crumb.Path)) } class="text-decoration-none">
+									if crumb.Name == "Root" {
+										<i class="bi bi-house me-1"></i>
+									}
+									{ crumb.Name }
+								</a>
+							</li>
+						}
+					}
+				</ol>
+			</nav>
+		</div>
+		<div class="tb-page-actions">
+			if data.IsTableBucketPath && data.TableBucketName != "" {
+				<a href={ dash.PUrl(ctx, "/object-store/s3tables/buckets") } class="btn tb-btn">
 					<i class="bi bi-arrow-left me-1"></i>Back to Table Buckets
 				</a>
 			} else if data.IsBucketPath && data.BucketName != "" {
-				<a href={ dash.PUrl(ctx, "/object-store/buckets") } class="btn btn-sm btn-outline-secondary">
+				<a href={ dash.PUrl(ctx, "/object-store/buckets") } class="btn tb-btn">
 					<i class="bi bi-arrow-left me-1"></i>Back to Buckets
 				</a>
 			}
-				<button type="button" class="btn btn-sm btn-outline-primary" onclick="createFolder()">
-					<i class="bi bi-folder-plus me-1"></i>New Folder
-				</button>
-				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="uploadFile()">
-					<i class="bi bi-upload me-1"></i>Upload
-				</button>
-				<button type="button" class="btn btn-sm btn-outline-danger" id="deleteSelectedBtn" onclick="confirmDeleteSelected()" style="display: none;">
-					<i class="bi bi-trash me-1"></i>Delete Selected
-				</button>
-				<button type="button" class="btn btn-sm btn-outline-info" onclick="exportFileList()">
-					<i class="bi bi-download me-1"></i>Export
-				</button>
-			</div>
+			<button type="button" class="btn btn-primary" onclick="createFolder()">
+				<i class="bi bi-folder-plus me-1"></i>New Folder
+			</button>
+			<button type="button" class="btn tb-btn" onclick="uploadFile()">
+				<i class="bi bi-upload me-1"></i>Upload
+			</button>
+			<button type="button" class="btn tb-btn text-danger" id="deleteSelectedBtn" onclick="confirmDeleteSelected()" style="display: none;">
+				<i class="bi bi-trash me-1"></i>Delete Selected
+			</button>
+			<button type="button" class="btn tb-btn" onclick="exportFileList()">
+				<i class="bi bi-download me-1"></i>Export
+			</button>
 		</div>
 	</div>
-
-	<!-- Breadcrumb Navigation -->
-	<nav aria-label="breadcrumb" class="mb-3">
-		<ol class="breadcrumb">
-			for i, crumb := range data.Breadcrumbs {
-				if i == len(data.Breadcrumbs)-1 {
-					<li class="breadcrumb-item active" aria-current="page">
-						<a href={ dash.PUrl(ctx, fileBrowserPathURL(crumb.Path)) } class="text-decoration-none">
-							{ crumb.Name }
-						</a>
-					</li>
-				} else {
-					<li class="breadcrumb-item">
-						<a href={ dash.PUrl(ctx, fileBrowserPathURL(crumb.Path)) } class="text-decoration-none">
-							if crumb.Name == "Root" {
-								<i class="bi bi-house me-1"></i>
-							}
-							{ crumb.Name }
-						</a>
-					</li>
-				}
-			}
-		</ol>
-	</nav>
 
 	<!-- File Listing -->
 	<div class="card shadow mb-4">

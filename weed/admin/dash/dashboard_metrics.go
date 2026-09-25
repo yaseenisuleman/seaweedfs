@@ -10,6 +10,10 @@ import (
 // cadence (piggy-backed on publishMaintenanceMetrics) this is ~15 minutes.
 const dashMaxSamples = 60
 
+// dashSampleSeconds is the nominal sample cadence, reported to the dashboard
+// for axis labels; the actual timestamps travel with the series.
+const dashSampleSeconds = 15
+
 // dashSample is one point-in-time snapshot of a few headline cluster numbers,
 // derived from data the admin already holds (cluster topology + the in-process
 // maintenance queue) — no Prometheus scrape required.
@@ -42,6 +46,22 @@ type DashboardTrends struct {
 	TasksValue   string `json:"tasks"`
 	Workers      string `json:"-"`
 	WorkersValue string `json:"workers"`
+
+	// Series carries the raw sample values behind the sparklines so the
+	// dashboard can draw labelled charts, tooltips and recent deltas.
+	Series DashboardSeries `json:"series"`
+}
+
+// DashboardSeries is the trend ring buffer as parallel arrays, oldest first.
+type DashboardSeries struct {
+	SampleSeconds int       `json:"sample_seconds"`
+	Times         []int64   `json:"t"` // unix seconds
+	Volumes       []float64 `json:"volumes"`
+	Chunks        []float64 `json:"chunks"`
+	DiskUsed      []float64 `json:"disk_used"`
+	EcShards      []float64 `json:"ec_shards"`
+	Tasks         []float64 `json:"tasks"`
+	Workers       []float64 `json:"workers"`
 }
 
 // recordDashboardSample snapshots headline cluster numbers into the ring
@@ -102,20 +122,38 @@ func (s *AdminServer) GetDashboardTrends() DashboardTrends {
 		}
 		return out
 	}
+	volumes := series(func(s dashSample) float64 { return s.volumes })
+	chunks := series(func(s dashSample) float64 { return s.chunks })
+	diskUsed := series(func(s dashSample) float64 { return s.diskUsed })
+	ecShards := series(func(s dashSample) float64 { return s.ecShards })
 	tasks := series(func(s dashSample) float64 { return s.tasks })
 	workers := series(func(s dashSample) float64 { return s.workers })
+	times := make([]int64, len(samples))
+	for i, smp := range samples {
+		times[i] = smp.t.Unix()
+	}
 
 	// Sparkline colors match the existing cards' border colors.
 	return DashboardTrends{
 		Samples:      len(samples),
-		Volumes:      sparklineSVG(series(func(s dashSample) float64 { return s.volumes }), "#1cc88a"),  // success
-		Chunks:       sparklineSVG(series(func(s dashSample) float64 { return s.chunks }), "#36b9cc"),   // info
-		DiskUsed:     sparklineSVG(series(func(s dashSample) float64 { return s.diskUsed }), "#f6c23e"), // warning
-		EcShards:     sparklineSVG(series(func(s dashSample) float64 { return s.ecShards }), "#5a5c69"), // dark
+		Volumes:      sparklineSVG(volumes, "#1cc88a"),  // success
+		Chunks:       sparklineSVG(chunks, "#36b9cc"),   // info
+		DiskUsed:     sparklineSVG(diskUsed, "#f6c23e"), // warning
+		EcShards:     sparklineSVG(ecShards, "#5a5c69"), // dark
 		Tasks:        sparklineSVG(tasks, "#36b9cc"),
 		TasksValue:   trendCount(last(tasks)),
 		Workers:      sparklineSVG(workers, "#4e73df"),
 		WorkersValue: trendCount(last(workers)),
+		Series: DashboardSeries{
+			SampleSeconds: dashSampleSeconds,
+			Times:         times,
+			Volumes:       volumes,
+			Chunks:        chunks,
+			DiskUsed:      diskUsed,
+			EcShards:      ecShards,
+			Tasks:         tasks,
+			Workers:       workers,
+		},
 	}
 }
 

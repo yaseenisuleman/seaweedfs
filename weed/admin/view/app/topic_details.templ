@@ -5,11 +5,14 @@ import "github.com/seaweedfs/seaweedfs/weed/admin/dash"
 import "github.com/seaweedfs/seaweedfs/weed/util"
 
 templ TopicDetails(data dash.TopicDetailsData) {
+    {{
+        schemaFields := len(data.KeySchema) + len(data.ValueSchema)
+    }}
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
                 <!-- Header -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="tb-page-header">
                     <div>
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
@@ -17,71 +20,62 @@ templ TopicDetails(data dash.TopicDetailsData) {
                                 <li class="breadcrumb-item active" aria-current="page">{data.TopicName}</li>
                             </ol>
                         </nav>
-                        <h1 class="h3 mb-0">Topic Details: {data.TopicName}</h1>
+                        <div class="tb-pretitle">Message Queue</div>
+                        <h2 class="tb-page-title"><i class="bi bi-card-list me-2 text-secondary"></i>Topic Details: {data.TopicName}</h2>
+                        <p class="mb-0 mt-1 text-muted">Last updated: {data.LastUpdated.Format("2006-01-02 15:04:05")}</p>
                     </div>
-                    <small class="text-muted">Last updated: {data.LastUpdated.Format("2006-01-02 15:04:05")}</small>
                 </div>
 
                 <!-- Summary Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-2">
-                        <div class="card text-center">
+                <div class="row row-deck g-3 mb-3">
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card tb-stat h-100">
                             <div class="card-body">
-                                <h5 class="card-title">Partitions</h5>
-                                <h3 class="text-primary">{fmt.Sprintf("%d", len(data.Partitions))}</h3>
+                                <div class="d-flex justify-content-between">
+                                    <div class="subheader">Partitions</div>
+                                    <span class="tb-stat-side">{ fmt.Sprintf("%d schema fields", schemaFields) }</span>
+                                </div>
+                                <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", len(data.Partitions)) }</span></div>
+                                <div class="tb-stat-text">{ fmt.Sprintf("Schema: %d key, %d value fields", len(data.KeySchema), len(data.ValueSchema)) }</div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <div class="card text-center">
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card tb-stat h-100">
                             <div class="card-body">
-                                <h5 class="card-title">Schema Fields</h5>
-                                <h3 class="text-info">{fmt.Sprintf("%d", len(data.KeySchema) + len(data.ValueSchema))}</h3>
+                                <div class="d-flex justify-content-between">
+                                    <div class="subheader">Total messages</div>
+                                </div>
+                                <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.MessageCount) }</span></div>
+                                <div class="tb-stat-text">{ fmt.Sprintf("%s stored across %d partitions", util.BytesToHumanReadable(uint64(data.TotalSize)), len(data.Partitions)) }</div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <div class="card text-center">
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card tb-stat h-100">
                             <div class="card-body">
-                                <h5 class="card-title">Total Messages</h5>
-                                <h3 class="text-success">{fmt.Sprintf("%d", data.MessageCount)}</h3>
+                                <div class="d-flex justify-content-between">
+                                    <div class="subheader">Publishers</div>
+                                </div>
+                                <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", len(data.Publishers)) }</span></div>
+                                <div class="tb-stat-text">
+                                    if len(data.Publishers) > 0 {
+                                        <span class="status-dot is-ok me-1"></span>Publishing to this topic
+                                    } else {
+                                        <span class="status-dot is-warn me-1"></span>No publishers connected
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <div class="card text-center">
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card tb-stat h-100">
                             <div class="card-body">
-                                <h5 class="card-title">Total Size</h5>
-                                <h3 class="text-warning">{util.BytesToHumanReadable(uint64(data.TotalSize))}</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">Publishers</h5>
-                                <h3 class="text-success">{fmt.Sprintf("%d", len(data.Publishers))}</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">Subscribers</h5>
-                                <h3 class="text-info">{fmt.Sprintf("%d", len(data.Subscribers))}</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Consumer Group Offsets Summary -->
-                <div class="row mb-4">
-                    <div class="col-md-12">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">Consumer Group Offsets</h5>
-                                <h3 class="text-warning">{fmt.Sprintf("%d", len(data.ConsumerGroupOffsets))}</h3>
-                                <p class="text-muted">Saved consumer progress checkpoints</p>
+                                <div class="d-flex justify-content-between">
+                                    <div class="subheader">Subscribers</div>
+                                </div>
+                                <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", len(data.Subscribers)) }</span></div>
+                                <div class="tb-stat-text">{ fmt.Sprintf("%d consumer group offset checkpoints saved", len(data.ConsumerGroupOffsets)) }</div>
                             </div>
                         </div>
                     </div>

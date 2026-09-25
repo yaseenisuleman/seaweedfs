@@ -6,82 +6,83 @@ import (
 )
 
 templ ClusterMasters(data dash.ClusterMastersData) {
-	<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-		<h1 class="h2">
-			<i class="bi bi-award me-2"></i>Masters
-		</h1>
-		<div class="btn-toolbar mb-2 mb-md-0">
-			<div class="btn-group me-2">
-				<button type="button" class="btn btn-sm btn-outline-primary" onclick="exportMasters()">
-					<i class="bi bi-download me-1"></i>Export
-				</button>
-			</div>
+	{{
+		followers := data.TotalMasters - data.LeaderCount
+		voters := 0
+		for _, m := range data.Masters {
+			if m.Suffrage == "" || m.Suffrage == "Voter" {
+				voters++
+			}
+		}
+	}}
+	<div class="tb-page-header">
+		<div>
+			<div class="tb-pretitle">Cluster</div>
+			<h2 class="tb-page-title"><i class="bi bi-award me-2 text-secondary"></i>Masters</h2>
+		</div>
+		<div class="tb-page-actions">
+			<button type="button" class="btn tb-btn" onclick="exportMasters()">
+				<i class="bi bi-download me-1"></i>Export
+			</button>
 		</div>
 	</div>
 
-	<div id="masters-content">
+	<div id="masters-content" class="ops">
 		<!-- Summary Cards -->
-		<div class="row mb-4">
-			<div class="col-xl-4 col-md-6 mb-4">
-				<div class="card border-left-primary shadow h-100 py-2">
+		<div class="row row-deck g-3 mb-3">
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-									Total Masters
-								</div>
-								<div class="h5 mb-0 font-weight-bold text-gray-800">
-									{ fmt.Sprintf("%d", data.TotalMasters) }
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-award icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Total masters</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalMasters) }</span></div>
+						<div class="tb-stat-text">{ fmt.Sprintf("%d voting in raft", voters) }</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Leaders</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.LeaderCount) }</span></div>
+						<div class="tb-stat-text">
+							if data.LeaderCount > 0 {
+								<span class="status-dot is-ok me-1"></span>Leader elected
+							} else {
+								<span class="status-dot is-crit me-1"></span>No leader elected
+							}
 						</div>
 					</div>
 				</div>
 			</div>
-
-			<div class="col-xl-4 col-md-6 mb-4">
-				<div class="card border-left-info shadow h-100 py-2">
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-									Leaders
-								</div>
-								<div class="h5 mb-0 font-weight-bold text-gray-800">
-									{ fmt.Sprintf("%d", data.LeaderCount) }
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-star icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Followers</div>
 						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", followers) }</span></div>
+						<div class="tb-stat-text">Replicating from the leader</div>
 					</div>
 				</div>
 			</div>
-
-			<div class="col-xl-4 col-md-6 mb-4">
-				<div class="card border-left-warning shadow h-100 py-2">
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-									Cluster Health
-								</div>
-								<div class="h5 mb-0 font-weight-bold text-gray-800">
-									if data.LeaderCount > 0 {
-										Healthy
-									} else {
-										Warning
-									}
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-activity icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Cluster health</div>
 						</div>
+						<div class="tb-stat-value"><span class="num">
+							if data.LeaderCount > 0 {
+								Healthy
+							} else {
+								Warning
+							}
+						</span></div>
+						<div class={ "tb-progress", templ.KV("is-crit", data.LeaderCount == 0) }><span style="width: 100%"></span></div>
 					</div>
 				</div>
 			</div>

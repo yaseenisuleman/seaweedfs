@@ -4,37 +4,87 @@ import "fmt"
 import "github.com/seaweedfs/seaweedfs/weed/admin/dash"
 
 templ Subscribers(data dash.SubscribersData) {
+    {{
+        inactiveSubscribers := data.TotalSubscribers - data.ActiveSubscribers
+        var totalMessages int64
+        topics := map[string]bool{}
+        groups := map[string]bool{}
+        for _, s := range data.Subscribers {
+            totalMessages += s.MessageCount
+            if s.Topic != "" {
+                topics[s.Topic] = true
+            }
+            if s.ConsumerGroup != "" {
+                groups[s.ConsumerGroup] = true
+            }
+        }
+        activePct := 0
+        if data.TotalSubscribers > 0 {
+            activePct = data.ActiveSubscribers * 100 / data.TotalSubscribers
+        }
+    }}
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h3 mb-0">Message Queue Subscribers</h1>
-                    <small class="text-muted">Last updated: {data.LastUpdated.Format("2006-01-02 15:04:05")}</small>
+                <div class="tb-page-header">
+                    <div>
+                        <div class="tb-pretitle">Message Queue</div>
+                        <h2 class="tb-page-title"><i class="bi bi-people me-2 text-secondary"></i>Subscribers</h2>
+                        <p class="mb-0 mt-1 text-muted">Last updated: {data.LastUpdated.Format("2006-01-02 15:04:05")}</p>
+                    </div>
                 </div>
 
                 <!-- Summary Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="card text-center">
+                <div class="row row-deck g-3 mb-3">
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card tb-stat h-100">
                             <div class="card-body">
-                                <h5 class="card-title">Total Subscribers</h5>
-                                <h3 class="text-primary">{fmt.Sprintf("%d", data.TotalSubscribers)}</h3>
+                                <div class="d-flex justify-content-between">
+                                    <div class="subheader">Total subscribers</div>
+                                    <span class="tb-stat-side">{ fmt.Sprintf("%d groups", len(groups)) }</span>
+                                </div>
+                                <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalSubscribers) }</span></div>
+                                <div class="tb-stat-text">{ fmt.Sprintf("Across %d topics", len(topics)) }</div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card text-center">
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card tb-stat h-100">
                             <div class="card-body">
-                                <h5 class="card-title">Active Subscribers</h5>
-                                <h3 class="text-success">{fmt.Sprintf("%d", data.ActiveSubscribers)}</h3>
+                                <div class="d-flex justify-content-between">
+                                    <div class="subheader">Active subscribers</div>
+                                </div>
+                                <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.ActiveSubscribers) }</span></div>
+                                <div class="d-flex justify-content-between tb-stat-text"><span>Active</span><span class="num">{ fmt.Sprintf("%d / %d", data.ActiveSubscribers, data.TotalSubscribers) }</span></div>
+                                <div class={ "tb-progress", "is-ok" }><span style={ fmt.Sprintf("width: %d%%", activePct) }></span></div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card text-center">
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card tb-stat h-100">
                             <div class="card-body">
-                                <h5 class="card-title">Inactive Subscribers</h5>
-                                <h3 class="text-warning">{fmt.Sprintf("%d", data.TotalSubscribers - data.ActiveSubscribers)}</h3>
+                                <div class="d-flex justify-content-between">
+                                    <div class="subheader">Inactive subscribers</div>
+                                </div>
+                                <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", inactiveSubscribers) }</span></div>
+                                <div class="tb-stat-text">
+                                    if inactiveSubscribers > 0 {
+                                        <span class="status-dot is-warn me-1"></span>Not currently consuming
+                                    } else {
+                                        <span class="status-dot is-ok me-1"></span>All subscribers active
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-sm-6">
+                        <div class="card tb-stat h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div class="subheader">Messages processed</div>
+                                </div>
+                                <div class="tb-stat-value"><span class="num">{ formatNumber(totalMessages) }</span></div>
+                                <div class="tb-stat-text">Total across all subscribers</div>
                             </div>
                         </div>
                     </div>

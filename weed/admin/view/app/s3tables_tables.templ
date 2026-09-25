@@ -9,73 +9,69 @@ import (
 )
 
 templ S3TablesTables(data dash.S3TablesTablesData) {
-	<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-		<h1 class="h2">
-			<i class="bi bi-table me-2"></i>S3 Tables
-			<span class={ formatBadgeClass(data.BucketFormat), "ms-2 align-middle" } title={ formatBadgeTitle(data.BucketFormat) }>{ formatLabel(data.BucketFormat) }</span>
-		</h1>
-		<div class="btn-toolbar mb-2 mb-md-0">
-			<div class="btn-group me-2">
-				<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createS3TablesTableModal">
-					<i class="bi bi-plus me-1"></i>Create Table
-				</button>
+	{{ bucketName, parseErr := s3tables.ParseBucketNameFromARN(data.BucketARN) }}
+	<div class="tb-page-header">
+		<div>
+			<div class="tb-pretitle">Object Store</div>
+			<h2 class="tb-page-title">
+				<i class="bi bi-table me-2 text-secondary"></i>S3 Tables
+				<span class={ formatBadgeClass(data.BucketFormat), "ms-2 align-middle" } title={ formatBadgeTitle(data.BucketFormat) }>{ formatLabel(data.BucketFormat) }</span>
+			</h2>
+			<div class="mt-2">
+				if parseErr == nil {
+					<a href={ dash.PUrl(ctx, fmt.Sprintf("/object-store/s3tables/buckets/%s/namespaces", url.PathEscape(bucketName))) } class="btn btn-sm btn-outline-secondary">
+						<i class="bi bi-arrow-left me-1"></i>Back to Namespaces
+					</a>
+				} else {
+					<button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Invalid bucket ARN">
+						<i class="bi bi-arrow-left me-1"></i>Back to Namespaces
+					</button>
+				}
+				<span class="text-muted ms-2">Bucket ARN: { data.BucketARN }</span>
+				<span class="text-muted ms-2">Namespace: { data.Namespace }</span>
+				if parseErr != nil {
+					<span class="text-danger ms-2">Invalid bucket ARN</span>
+				}
 			</div>
 		</div>
-	</div>
-	<div class="mb-3">
-		{{ bucketName, parseErr := s3tables.ParseBucketNameFromARN(data.BucketARN) }}
-		if parseErr == nil {
-			<a href={ dash.PUrl(ctx, fmt.Sprintf("/object-store/s3tables/buckets/%s/namespaces", url.PathEscape(bucketName))) } class="btn btn-sm btn-outline-secondary">
-				<i class="bi bi-arrow-left me-1"></i>Back to Namespaces
-			</a>
-		} else {
-			<button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Invalid bucket ARN">
-				<i class="bi bi-arrow-left me-1"></i>Back to Namespaces
+		<div class="tb-page-actions">
+			<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createS3TablesTableModal">
+				<i class="bi bi-plus me-1"></i>Create Table
 			</button>
-		}
-		<span class="text-muted ms-2">Bucket ARN: { data.BucketARN }</span>
-		<span class="text-muted ms-2">Namespace: { data.Namespace }</span>
-		if parseErr != nil {
-			<span class="text-danger ms-2">Invalid bucket ARN</span>
-		}
+		</div>
 	</div>
 	<div id="s3tables-tables-content" data-bucket-arn={ data.BucketARN } data-namespace={ data.Namespace }>
-		<div class="row mb-4">
-			<div class="col-xl-4 col-md-6 mb-4">
-				<div class="card border-left-primary shadow h-100 py-2">
+		<div class="row row-deck g-3 mb-3">
+			<div class="col-xl-4 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-									Total Tables
-								</div>
-								<div class="h5 mb-0 font-weight-bold text-gray-800">
-									{ fmt.Sprintf("%d", data.TotalTables) }
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-table icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Tables</div>
 						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalTables) }</span></div>
+						<div class="tb-stat-text">{ "In namespace " + data.Namespace }</div>
 					</div>
 				</div>
 			</div>
-			<div class="col-xl-4 col-md-6 mb-4">
-				<div class="card border-left-info shadow h-100 py-2">
+			<div class="col-xl-4 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-									Last Updated
-								</div>
-								<div class="h6 mb-0 font-weight-bold text-gray-800">
-									{ data.LastUpdated.Format("15:04") }
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-clock icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Row counts reported</div>
 						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", len(data.ObservedRows)) }</span></div>
+						<div class="tb-stat-text">Tables counted by a plugin worker</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-4 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Last updated</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{ data.LastUpdated.Format("15:04") }</span></div>
+						<div class="tb-stat-text">{ "Listed on " + data.LastUpdated.Format("2006-01-02") }</div>
 					</div>
 				</div>
 			</div>

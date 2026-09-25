@@ -6,83 +6,96 @@ import (
 )
 
 templ ClusterVolumeServers(data dash.ClusterVolumeServersData) {
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">
-            <i class="bi bi-server me-2"></i>Volume Servers
-        </h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group me-2">
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportVolumeServers()">
-                    <i class="bi bi-download me-1"></i>Export
-                </button>
-            </div>
-        </div>
-    </div>
+	{{
+		var diskUsed int64
+		slotsUsed, slotsMax, ecShards := 0, 0, 0
+		dcSet := map[string]bool{}
+		for _, vs := range data.VolumeServers {
+			diskUsed += vs.DiskUsage
+			slotsUsed += vs.Volumes
+			slotsMax += vs.MaxVolumes
+			ecShards += vs.EcShards
+			dcSet[vs.DataCenter] = true
+		}
+		slotPct := calculatePercent(slotsUsed, slotsMax)
+		diskPct := 0
+		if data.TotalCapacity > 0 {
+			diskPct = int(diskUsed * 100 / data.TotalCapacity)
+		}
+	}}
+	<div class="tb-page-header">
+		<div>
+			<div class="tb-pretitle">Cluster</div>
+			<h2 class="tb-page-title"><i class="bi bi-server me-2 text-secondary"></i>Volume Servers</h2>
+		</div>
+		<div class="tb-page-actions">
+			<button type="button" class="btn tb-btn" onclick="exportVolumeServers()">
+				<i class="bi bi-download me-1"></i>Export
+			</button>
+		</div>
+	</div>
 
-    <div id="hosts-content">
+    <div id="hosts-content" class="ops">
         <!-- Summary Cards -->
-        <div class="row mb-4">
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-primary shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Total Volume Servers
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {fmt.Sprintf("%d", data.TotalVolumeServers)}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-server icon-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-info shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                    Total Volumes
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {fmt.Sprintf("%d", data.TotalVolumes)}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-database icon-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-warning shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                    Total Capacity
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {formatBytes(data.TotalCapacity)}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-device-hdd icon-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="row row-deck g-3 mb-3">
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Volume servers</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{fmt.Sprintf("%d", data.TotalVolumeServers)}</span></div>
+						<div class="tb-stat-text">
+							if len(dcSet) == 1 {
+								in 1 data center
+							} else {
+								{ fmt.Sprintf("in %d data centers", len(dcSet)) }
+							}
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Total volumes</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{fmt.Sprintf("%d", data.TotalVolumes)}</span></div>
+						<div class="d-flex justify-content-between tb-stat-text">
+							<span>Volume slots used</span>
+							<span class="num">{ fmt.Sprintf("%d / %d", slotsUsed, slotsMax) }</span>
+						</div>
+						<div class={ "tb-progress", templ.KV("is-warn", slotPct >= 75 && slotPct < 90), templ.KV("is-crit", slotPct >= 90) }><span style={ fmt.Sprintf("width: %d%%", slotPct) }></span></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Total capacity</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{formatBytes(data.TotalCapacity)}</span></div>
+						<div class="d-flex justify-content-between tb-stat-text">
+							<span>Data stored</span>
+							<span class="num">{ formatBytes(diskUsed) }</span>
+						</div>
+						<div class={ "tb-progress", templ.KV("is-warn", diskPct >= 75 && diskPct < 90), templ.KV("is-crit", diskPct >= 90) }><span style={ fmt.Sprintf("width: %d%%", diskPct) }></span></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">EC shards</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{fmt.Sprintf("%d", ecShards)}</span></div>
+						<div class="tb-stat-text">Erasure-coded shards across servers</div>
+					</div>
+				</div>
+			</div>
         </div>
 
         <!-- Hosts Table -->

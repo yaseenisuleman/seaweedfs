@@ -1,7 +1,103 @@
 /* SeaweedFS Dashboard Custom Styles */
 
+/* Default UI scale. Every size below is in rem, so this scales the whole admin
+   the way browser zoom would, while still honouring the user's own browser
+   font-size preference (it is a percentage, not a fixed px value). */
+html {
+    font-size: 87.5%;
+}
+
 :root {
-    --navbar-height: 56px;
+    --navbar-height: 4rem;
+    --sidebar-width: 14.125rem;
+
+    /* Palette (Tabler) */
+    --app-primary: #066fd1;
+    --app-primary-rgb: 6, 111, 209;
+    --app-primary-dark: #0559a8;
+    --app-success: #2fb344;
+    --app-info: #4299e1;
+    --app-warning: #f76707;
+    --app-danger: #d63939;
+    --app-secondary: #737373;
+    --app-dark: #262626;
+    --app-success-rgb: 47, 179, 68;
+    --app-info-rgb: 66, 153, 225;
+    --app-warning-rgb: 247, 103, 7;
+    --app-danger-rgb: 214, 57, 57;
+    --app-secondary-rgb: 115, 115, 115;
+    --app-success-text: #238633;
+    --app-info-text: #2b7bc0;
+
+    /* Surfaces and text */
+    --app-bg: #fafafa;
+    --app-surface: #ffffff;
+    --app-menu-bg: #ffffff;
+    --app-menu-active: rgba(6, 111, 209, 0.07);
+    --app-border: #e6e7e9;
+    --app-heading: #171717;
+    --app-text: #404040;
+    --app-muted: #737373;
+    --app-hover: #f5f5f5;
+    --app-grid: #ededed;
+
+    --app-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --app-font-heading: var(--app-font);
+
+    --app-radius: 0.5rem;
+    --app-radius-sm: 0.375rem;
+    --app-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.02);
+}
+
+body {
+    background-color: var(--app-bg);
+    color: var(--app-text);
+    font-family: var(--app-font);
+    font-size: 0.875rem;
+}
+
+h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+    font-family: var(--app-font-heading);
+    font-weight: 500;
+    color: var(--app-heading);
+}
+
+/* Type scale for page content. Sizes are in rem rather than Bootstrap's
+   em-relative defaults, so small text and badges nested inside smaller text
+   don't compound below a readable size, and page titles stay proportionate. */
+main h1.h2,
+main .h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+main h1.h3,
+main .h3 {
+    font-size: 1.375rem;
+    font-weight: 600;
+}
+
+main h1.h2 > i,
+main .h2 > i,
+main .h3 > i {
+    color: var(--app-muted);
+}
+
+small,
+.small {
+    font-size: 0.8125rem;
+}
+
+.text-xs {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+}
+
+.card-header h5,
+.card-header .h5,
+.card-header h6,
+.card-header .h6 {
+    font-size: 0.9375rem;
 }
 
 /* Icon sizing and animation helpers used by the admin templates. */
@@ -32,13 +128,210 @@
     }
 }
 
-/* Link colors - muted */
+/* Links */
 a {
-    color: #5b7c99;
+    color: var(--app-primary);
 }
 
 a:hover {
-    color: #4a6a88;
+    color: var(--app-primary-dark);
+}
+
+/* Top navbar — a floating card to the right of the sidebar on desktop */
+.app-navbar {
+    min-height: var(--navbar-height);
+    background-color: var(--app-surface) !important;
+    border-bottom: 1px solid var(--app-border);
+}
+
+@media (min-width: 768px) {
+    .app-navbar {
+        min-height: 3.875rem;
+        margin-left: 25%;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        background-color: var(--app-bg) !important;
+        border-bottom: 0;
+    }
+
+}
+
+@media (min-width: 992px) {
+    .app-navbar {
+        margin-left: 16.6667%;
+    }
+
+}
+
+.app-brand {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--app-heading) !important;
+}
+
+.app-brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-right: 0.65rem;
+    border-radius: var(--app-radius);
+    background: linear-gradient(135deg, #80a8f3 0%, var(--app-primary) 100%);
+    color: #fff;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(90, 141, 238, 0.35);
+}
+
+.app-navbar .nav-link {
+    color: var(--app-heading);
+    font-weight: 500;
+}
+
+.app-navbar .nav-link:hover,
+.app-navbar .nav-link:focus {
+    color: var(--app-primary);
+}
+
+.app-user {
+    display: flex;
+    align-items: center;
+}
+
+.app-user-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-right: 0.6rem;
+    border-radius: 50%;
+    background-color: rgba(90, 141, 238, 0.14);
+    color: var(--app-primary);
+    font-size: 1.1rem;
+}
+
+/* Page search in the top bar (quick-search.js) */
+.app-search {
+    position: relative;
+    align-items: center;
+    flex: 0 1 22rem;
+}
+
+.app-search > i {
+    position: absolute;
+    left: 0.25rem;
+    color: var(--app-heading);
+}
+
+.app-search input {
+    width: 100%;
+    padding: 0.45rem 3.5rem 0.45rem 2rem;
+    border: 0;
+    background: transparent;
+    color: var(--app-heading);
+    outline: none;
+}
+
+.app-search input::placeholder {
+    color: var(--app-muted);
+}
+
+.app-search kbd {
+    position: absolute;
+    right: 0.25rem;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--app-border);
+    border-radius: 0.25rem;
+    background-color: var(--app-surface);
+    color: var(--app-muted);
+    font-family: var(--app-font);
+    font-size: 0.7rem;
+}
+
+.app-search-results {
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    left: 0;
+    z-index: 1060;
+    width: 24rem;
+    padding: 0.4rem;
+    border-radius: var(--app-radius);
+    background-color: var(--app-surface);
+    box-shadow: 0 8px 28px rgba(38, 60, 85, 0.2);
+}
+
+.app-search-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: 0.3rem;
+    color: var(--app-heading);
+    text-decoration: none;
+}
+
+.app-search-item i {
+    width: 1.2rem;
+    color: var(--app-muted);
+}
+
+.app-search-item small {
+    margin-left: auto;
+    color: var(--app-muted);
+}
+
+.app-search-item:hover,
+.app-search-item.active {
+    background-color: var(--app-menu-active);
+    color: var(--app-primary);
+}
+
+.app-search-item.active i {
+    color: var(--app-primary);
+}
+
+.app-search-empty {
+    padding: 0.8rem;
+    font-size: 0.875rem;
+    color: var(--app-muted);
+}
+
+/* Brand block at the top of the sidebar (desktop) */
+.sidebar-brand .app-brand-icon {
+    width: 2rem;
+    height: 2rem;
+    margin-right: 0.55rem;
+    font-size: 1rem;
+}
+
+.sidebar-brand {
+    align-items: center;
+    height: 3.75rem;
+    padding: 0 1rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--app-primary);
+    text-decoration: none;
+}
+
+.sidebar-brand:hover {
+    color: var(--app-primary);
+}
+
+.sidebar-brand-tag {
+    margin-left: 0.35rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.3rem;
+    background-color: rgba(90, 141, 238, 0.14);
+    color: var(--app-primary);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 /* Sidebar Styles */
@@ -48,45 +341,80 @@ a:hover {
     bottom: 0;
     left: 0;
     z-index: 100;
-    padding: 48px 0 0;
-    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    padding: 0.5rem 0 1rem;
+    background-color: var(--app-menu-bg) !important;
+    border-right: 1px solid var(--app-border);
     overflow-y: auto;
 }
 
+@media (min-width: 768px) {
+    .sidebar {
+        top: 0;
+        z-index: 1031;
+        padding-top: 0;
+        border-right: 1px solid var(--app-border);
+    }
+
+}
+
 .sidebar-heading {
-    font-size: .75rem;
+    margin-top: 1rem !important;
+    padding-left: 1.3rem !important;
+    font-size: .7rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
+    color: var(--app-muted) !important;
 }
 
 .sidebar .nav-link {
-    font-weight: 500;
-    color: #333;
+    display: flex;
+    align-items: center;
+    margin: 0.0625rem 0.6rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 0.375rem;
+    font-weight: 400;
+    font-size: 0.875rem;
+    color: var(--app-text);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar .nav-link i:first-child {
+    width: 1.25rem;
+    margin-right: 0.5rem !important;
+    font-size: 1rem;
+    color: inherit;
+    transition: color 0.15s ease;
 }
 
 .sidebar .nav-link:hover {
-    color: #5b7c99;
+    color: var(--app-primary);
+    background-color: var(--app-hover);
 }
 
 .sidebar .nav-link.active {
-    color: #5b7c99;
+    color: var(--app-heading);
+    background-color: var(--app-menu-active);
+    font-weight: 500;
 }
 
-.sidebar .nav-link:hover .feather,
-.sidebar .nav-link.active .feather {
-    color: inherit;
+.sidebar .nav-link:hover i:first-child,
+.sidebar .nav-link.active i:first-child {
+    color: var(--app-primary);
 }
 
 /* Main content area */
 main {
     margin-left: 240px;
+    padding-bottom: 1.5rem;
 }
 
 @media (max-width: 767.98px) {
     .sidebar {
         top: var(--navbar-height);
         padding-top: 0;
-        width: 240px;
-        background-color: #f8f9fa !important;
+        width: 260px;
+        background-color: var(--app-menu-bg) !important;
         z-index: 1050;
     }
     .sidebar.show ~ .sidebar-backdrop {
@@ -95,6 +423,7 @@ main {
     main {
         margin-left: 0;
     }
+
 }
 
 /* Sidebar backdrop for mobile overlay */
@@ -105,123 +434,184 @@ main {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(38, 60, 85, 0.4);
     z-index: 1040;
 }
 
+/* Footer */
+.app-footer {
+    background-color: transparent;
+    border-top: 1px solid var(--app-border);
+}
+
+@media (min-width: 768px) {
+    .app-footer {
+        margin-left: 25%;
+    }
+
+}
+
+@media (min-width: 992px) {
+    .app-footer {
+        margin-left: 16.6667%;
+    }
+
+}
+
+/* Page header */
+
 /* Custom card styles */
 .border-left-primary {
-    border-left: 0.25rem solid #6b8caf !important;
+    border-left: 0.25rem solid var(--app-primary) !important;
 }
 
 .border-left-success {
-    border-left: 0.25rem solid #5a8a72 !important;
+    border-left: 0.25rem solid var(--app-success) !important;
 }
 
 .border-left-info {
-    border-left: 0.25rem solid #6a9aaa !important;
+    border-left: 0.25rem solid var(--app-info) !important;
 }
 
 .border-left-warning {
-    border-left: 0.25rem solid #b8995e !important;
+    border-left: 0.25rem solid var(--app-warning) !important;
 }
 
 .border-left-danger {
-    border-left: 0.25rem solid #a5615c !important;
+    border-left: 0.25rem solid var(--app-danger) !important;
 }
 
 /* Status badges */
 .badge {
-    font-size: 0.875em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.4em 0.65em;
+    border-radius: 0.3rem;
 }
 
-/* Muted badge colors - override Bootstrap defaults */
+/* Badge and background colors - override Bootstrap defaults */
 .badge.bg-primary,
 .bg-primary {
-    background-color: #6b8caf !important;
+    background-color: var(--app-primary) !important;
 }
 
 .badge.bg-success,
 .bg-success {
-    background-color: #5a8a72 !important;
+    background-color: var(--app-success) !important;
 }
 
 .badge.bg-info,
 .bg-info {
-    background-color: #6a9aaa !important;
+    background-color: var(--app-info) !important;
 }
 
 .badge.bg-warning,
 .bg-warning {
-    background-color: #b8995e !important;
+    background-color: var(--app-warning) !important;
 }
 
 .badge.bg-danger,
 .bg-danger {
-    background-color: #a5615c !important;
+    background-color: var(--app-danger) !important;
 }
 
 .badge.bg-secondary,
 .bg-secondary {
-    background-color: #7a7d85 !important;
+    background-color: var(--app-secondary) !important;
 }
 
-/* Muted card background colors for text-bg-* utility classes */
+/* Soft (tinted) badges */
+.badge-soft-primary {
+    background-color: rgba(90, 141, 238, 0.15);
+    color: var(--app-primary);
+}
+
+.badge-soft-success {
+    background-color: rgba(57, 218, 138, 0.15);
+    color: var(--app-success);
+}
+
+.badge-soft-info {
+    background-color: rgba(0, 207, 221, 0.15);
+    color: #0097aa;
+}
+
+.badge-soft-warning {
+    background-color: rgba(253, 172, 65, 0.18);
+    color: #d98a1c;
+}
+
+.badge-soft-danger {
+    background-color: rgba(255, 91, 92, 0.15);
+    color: var(--app-danger);
+}
+
+.badge-soft-secondary {
+    background-color: rgba(105, 128, 154, 0.18);
+    color: var(--app-secondary);
+}
+
+/* Card background colors for text-bg-* utility classes */
 .text-bg-primary,
 .card.text-bg-primary {
-    background-color: #6b8caf !important;
+    background-color: var(--app-primary) !important;
     color: #fff !important;
 }
 
 .text-bg-success,
 .card.text-bg-success {
-    background-color: #5a8a72 !important;
+    background-color: var(--app-success) !important;
     color: #fff !important;
 }
 
 .text-bg-info,
 .card.text-bg-info {
-    background-color: #6a9aaa !important;
+    background-color: var(--app-info) !important;
     color: #fff !important;
 }
 
 .text-bg-warning,
 .card.text-bg-warning {
-    background-color: #b8995e !important;
+    background-color: var(--app-warning) !important;
     color: #fff !important;
 }
 
 .text-bg-danger,
 .card.text-bg-danger {
-    background-color: #a5615c !important;
+    background-color: var(--app-danger) !important;
     color: #fff !important;
 }
 
-/* Muted text color utilities */
+/* Text color utilities */
 .text-primary {
-    color: #6b8caf !important;
+    color: var(--app-primary) !important;
 }
 
 .text-success {
-    color: #5a8a72 !important;
+    color: var(--app-success) !important;
 }
 
 .text-info {
-    color: #6a9aaa !important;
+    color: var(--app-info) !important;
 }
 
 .text-warning {
-    color: #b8995e !important;
+    color: var(--app-warning) !important;
 }
 
 .text-danger {
-    color: #a5615c !important;
+    color: var(--app-danger) !important;
+}
+
+.text-muted {
+    color: var(--app-muted) !important;
 }
 
 /* Progress bars */
 .progress {
-    background-color: #f8f9fc;
-    border: 1px solid #e3e6f0;
+    background-color: #eef1f6;
+    border: 0;
+    border-radius: 1rem;
 }
 
 .progress-bar {
@@ -229,59 +619,121 @@ main {
     font-weight: 700;
     color: #fff;
     text-align: center;
+    background-color: var(--app-primary);
+    border-radius: 1rem;
 }
 
 /* Tables */
 .table {
-    color: #5a5c69;
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--app-text);
+    --bs-table-hover-color: var(--app-text);
+    color: var(--app-text);
 }
 
 .table thead th {
     vertical-align: bottom;
-    border-bottom: 1px solid #e3e6f0;
-    font-weight: 700;
-    color: #5a5c69;
+    border-bottom: 1px solid var(--app-border);
+    font-weight: 600;
+    color: var(--app-heading);
     background-color: #f8f9fc;
 }
 
+.table > :not(caption) > * > * {
+    border-bottom-color: var(--app-border);
+}
+
+.table-hover > tbody > tr:hover > * {
+    --bs-table-accent-bg: var(--app-hover);
+}
+
 .table-bordered {
-    border: 1px solid #e3e6f0;
+    border: 1px solid var(--app-border);
 }
 
 .table-bordered th,
 .table-bordered td {
-    border: 1px solid #e3e6f0;
+    border: 1px solid var(--app-border);
 }
 
 /* Cards */
 .card {
-    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
-    border: 1px solid #e3e6f0;
+    background-color: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+    box-shadow: var(--app-shadow) !important;
 }
 
 .card-header {
-    background-color: #f8f9fc;
-    border-bottom: 1px solid #e3e6f0;
+    background-color: var(--app-surface);
+    border-bottom: 1px solid var(--app-border);
+    padding: 1rem 1.5rem;
+}
+
+.card-header:first-child {
+    border-radius: var(--app-radius) var(--app-radius) 0 0;
 }
 
 /* Buttons */
-.btn-primary {
-    background-color: #6b8caf;
-    border-color: #6b8caf;
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 400;
 }
 
-.btn-primary:hover {
-    background-color: #5b7c99;
-    border-color: #5b7c99;
+.btn-primary {
+    background-color: var(--app-primary);
+    border-color: var(--app-primary);
+    box-shadow: 0 2px 6px rgba(90, 141, 238, 0.35);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--app-primary-dark);
+    border-color: var(--app-primary-dark);
+}
+
+.btn-outline-primary {
+    color: var(--app-primary);
+    border-color: var(--app-primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+    color: #fff;
+    background-color: var(--app-primary);
+    border-color: var(--app-primary);
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    border: 0;
+    border-radius: var(--app-radius);
+    box-shadow: 0 6px 24px rgba(38, 60, 85, 0.14);
+    padding: 0.5rem 0;
+}
+
+.dropdown-item {
+    color: var(--app-text);
+    padding: 0.45rem 1.25rem;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    color: var(--app-primary);
+    background-color: var(--app-hover);
+}
+
+.no-arrow .dropdown-toggle::after {
+    display: none;
 }
 
 /* Text utilities */
 .text-gray-800 {
-    color: #5a5c69 !important;
+    color: var(--app-heading) !important;
 }
 
 .text-gray-300 {
-    color: #dddfeb !important;
+    color: #d5dbe5 !important;
 }
 
 /* Animation for HTMX updates */
@@ -306,16 +758,16 @@ main {
 
 /* Custom utilities */
 .bg-gradient-primary {
-    background: linear-gradient(180deg, #6b8caf 10%, #5b7c99 100%);
+    background: linear-gradient(180deg, var(--app-primary) 10%, var(--app-primary-dark) 100%);
 }
 
 .shadow {
-    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+    box-shadow: var(--app-shadow) !important;
 }
 
 /* Navbar user icon color */
 .navbar-toggler .bi-person {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--app-heading);
 }
 
 /* Collapsible menu styles */
@@ -324,6 +776,7 @@ main {
 }
 
 .nav-link[data-bs-toggle="collapse"] .bi-chevron-down {
+    font-size: 0.75rem;
     transition: transform 0.2s ease;
 }
 
@@ -332,26 +785,2213 @@ main {
 }
 
 .nav-link[data-bs-toggle="collapse"]:not(.collapsed) {
-    color: #5b7c99;
+    color: var(--app-primary);
 }
 
 .nav-link[data-bs-toggle="collapse"]:not(.collapsed) .bi-chevron-down {
-    color: #5b7c99;
+    color: var(--app-primary);
 }
 
 /* Submenu styles */
 .nav .nav {
-    border-left: 1px solid #e3e6f0;
+    border-left: 0;
     margin-left: 0.5rem;
 }
 
 .nav .nav .nav-link {
-    font-size: 0.875rem;
-    padding-left: 1rem;
+    font-size: 0.8125rem;
+    padding-left: 0.85rem;
 }
 
 .nav .nav .nav-link:hover {
-    background-color: #f8f9fc;
+    background-color: var(--app-hover);
+}
+
+/* ---------------------------------------------------------------
+   Dashboard (modelled on the Frest logistics dashboard)
+   --------------------------------------------------------------- */
+
+/* Accent color per element; drives icon tints and chart colors. */
+
+.live-dot {
+    position: relative;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 50%;
+    background-color: var(--app-success);
+}
+
+.live-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-color: var(--app-success);
+    animation: live-pulse 2s ease-out infinite;
+}
+
+@keyframes live-pulse {
+    from { transform: scale(1); opacity: 0.6; }
+    to { transform: scale(3); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .live-dot::after {
+        animation: none;
+    }
+
+}
+
+/* Pages that wrap themselves in .container-fluid would otherwise sit
+   further in from the sidebar than the dashboard and Cluster pages. */
+main > .pt-3 > .container-fluid {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* One card padding for every page (the dashboard and all other pages). */
+.card-body {
+    padding: 1.25rem;
+}
+
+/* Tinted icons */
+
+/* Card headers without a divider */
+
+.dash-kebab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    color: var(--app-muted);
+}
+
+.dash-kebab:hover,
+.dash-kebab:focus {
+    color: var(--app-heading);
+    background-color: var(--app-hover);
+}
+
+/* KPI cards: icon + number, label, footnote; accent bottom edge */
+
+.kpi-delta {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.45rem 0.1rem 0.2rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.kpi-delta:empty {
+    display: none;
+}
+
+.kpi-delta i {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.kpi-delta span {
+    margin-left: 0.3rem;
+    font-weight: 400;
+    opacity: 0.75;
+}
+
+.kpi-delta.up {
+    background-color: rgba(57, 218, 138, 0.14);
+    color: #1f9d5f;
+}
+
+.kpi-delta.down {
+    background-color: rgba(255, 91, 92, 0.12);
+    color: #e04546;
+}
+
+.kpi-delta.flat {
+    background-color: #eef0f4;
+    color: var(--app-text);
+}
+
+/* Charts drawn by dashboard-charts.js from the embedded series */
+.chart {
+    position: relative;
+}
+
+.chart svg {
+    display: block;
+}
+
+.chart-axis {
+    font-family: var(--app-font);
+    font-size: 0.6875rem;
+    fill: var(--app-muted);
+}
+
+.chart-crosshair {
+    stroke: var(--app-muted);
+    stroke-dasharray: 3 3;
+}
+
+.chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: inherit;
+    border: 1px dashed var(--app-border);
+    border-radius: var(--app-radius);
+    font-size: 0.875rem;
+    color: var(--app-muted);
+}
+
+.chart-tooltip {
+    position: absolute;
+    z-index: 5;
+    padding: 0.45rem 0.7rem;
+    border-radius: var(--app-radius);
+    background-color: #283144;
+    box-shadow: 0 6px 18px rgba(38, 60, 85, 0.25);
+    color: #fff;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.chart-tooltip-time {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.chart-tooltip-value {
+    font-weight: 600;
+}
+
+.chart-switch .btn {
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--app-border);
+    background-color: var(--app-surface);
+    box-shadow: none;
+    color: var(--app-text);
+    font-size: 0.8125rem;
+}
+
+.chart-switch .btn:hover {
+    color: var(--app-primary);
+}
+
+.chart-switch .btn.active {
+    border-color: rgba(90, 141, 238, 0.35);
+    background-color: rgba(90, 141, 238, 0.12);
+    color: var(--app-primary);
+}
+
+/* Segment colors (overview bar, legends) */
+
+/* Cluster overview: labelled segmented bar + breakdown */
+
+/* Activity list, like the demo's "Delivery Performance" */
+
+/* Disk usage donut, like "Reasons for delivery exceptions" */
+
+/* Tabs */
+.dash-tabs {
+    gap: 0.25rem;
+    padding: 0.5rem 1.375rem 0;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.dash-tabs .nav-link {
+    width: 100%;
+    margin-bottom: -1px;
+    padding: 0.6rem 0.9rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--app-heading);
+}
+
+.dash-tabs .nav-link:hover {
+    color: var(--app-primary);
+}
+
+.dash-tabs .nav-link.active {
+    color: var(--app-primary);
+    border-bottom-color: var(--app-primary);
+}
+
+/* Node timeline, like "Orders by Countries" */
+
+/* Tables, like "On route vehicles" */
+
+.dashboard a {
+    text-decoration: none;
+}
+
+/* Thin progress bar with its value beside it */
+
+/* ---------------------------------------------------------------
+   Dashboard view switch and theme toggle
+   --------------------------------------------------------------- */
+
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--app-heading);
+    font-size: 1.05rem;
+}
+
+.theme-toggle:hover {
+    background-color: var(--app-hover);
+}
+
+/* ---------------------------------------------------------------
+   Shell (Tabler-style): brand, search, nav and user in the sidebar
+   --------------------------------------------------------------- */
+@media (min-width: 768px) {
+    #sidebarMenu.sidebar {
+        display: flex !important;
+        flex-direction: column;
+        width: var(--sidebar-width);
+        overflow: visible;
+    }
+
+    .row > main[class*="col-"] {
+        width: calc(100% - var(--sidebar-width));
+    }
+
+    .app-footer {
+        margin-left: var(--sidebar-width) !important;
+    }
+
+}
+
+.sidebar .app-search {
+    margin: 0 0.75rem 0.4rem;
+    flex: 0 0 auto;
+}
+
+.sidebar .app-search input {
+    padding: 0.4rem 3.1rem 0.4rem 2rem;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-sm);
+    background-color: var(--app-surface);
+    font-size: 0.8125rem;
+}
+
+.sidebar .app-search input:focus {
+    border-color: rgba(var(--app-primary-rgb), 0.5);
+    box-shadow: 0 0 0 0.2rem rgba(var(--app-primary-rgb), 0.12);
+}
+
+/* Icon and shortcut hint are centred on the input's height */
+.sidebar .app-search > i,
+.sidebar .app-search kbd {
+    top: 50%;
+    transform: translateY(-50%);
+    line-height: 1;
+}
+
+.sidebar .app-search > i {
+    left: 0.7rem;
+    font-size: 0.8rem;
+    color: var(--app-muted);
+}
+
+.sidebar .app-search > i::before {
+    display: block;
+}
+
+.sidebar .app-search kbd {
+    right: 0.45rem;
+    padding: 0.2rem 0.4rem;
+}
+
+.sidebar .app-search-results {
+    width: 100%;
+    min-width: 16rem;
+}
+
+.sidebar-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.sidebar-footer {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    border-top: 1px solid var(--app-border);
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    color: var(--app-heading);
+    text-decoration: none;
+}
+
+.sidebar-user .app-user-avatar {
+    flex-shrink: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.sidebar-user-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+}
+
+.sidebar-user-name {
+    overflow: hidden;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-user-text small {
+    color: var(--app-muted);
+}
+
+/* ---------------------------------------------------------------
+   Ops dashboard (Tabler layout)
+   --------------------------------------------------------------- */
+.ops {
+    --ops-ok: var(--app-success);
+    --ops-warn: var(--app-warning);
+    --ops-crit: var(--app-danger);
+    --accent: var(--app-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.ops .num {
+    font-variant-numeric: tabular-nums;
+}
+
+.ops .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.8125rem;
+}
+
+.ops a:not(.btn) {
+    color: var(--app-primary);
+    text-decoration: none;
+}
+
+.ops .text-secondary {
+    color: var(--app-muted) !important;
+}
+
+.ops-dim {
+    color: var(--app-muted) !important;
+}
+
+.ops-text-crit {
+    color: var(--ops-crit) !important;
+}
+
+.ops-text-warn {
+    color: var(--ops-warn) !important;
+}
+
+.ops.ops-compact .card-body {
+    padding: 0.85rem 1rem;
+}
+
+.ops.ops-compact .tb-table td {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+}
+
+.ops.ops-compact .g-3 {
+    --bs-gutter-x: 0.75rem;
+    --bs-gutter-y: 0.75rem;
+}
+
+/* Rows whose cards stretch to equal height */
+.row-deck > [class*="col"] {
+    display: flex;
+}
+
+.row-deck > [class*="col"] > .card {
+    flex: 1 1 auto;
+}
+
+/* Page header */
+.tb-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0.25rem 0 1.25rem;
+}
+
+.tb-pretitle {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--app-muted);
+}
+
+.tb-pretitle .live-dot {
+    margin-right: 0.2rem;
+}
+
+.tb-page-title {
+    margin: 0.15rem 0 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--app-heading);
+}
+
+.tb-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tb-health {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--app-text);
+}
+
+.tb-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    border: 1px solid var(--app-border);
+    background-color: var(--app-surface);
+    box-shadow: none;
+    color: var(--app-heading);
+}
+
+.tb-btn:hover,
+.tb-btn.active {
+    border-color: var(--app-primary);
+    color: var(--app-primary);
+}
+
+/* Status dots */
+.status-dot {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: var(--app-muted);
+    vertical-align: middle;
+}
+
+.status-dot.is-ok { background-color: var(--ops-ok, var(--app-success)); }
+.status-dot.is-warn { background-color: var(--ops-warn, var(--app-warning)); }
+.status-dot.is-crit { background-color: var(--ops-crit, var(--app-danger)); }
+
+.status-dot-animated::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-color: inherit;
+    animation: live-pulse 2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .status-dot-animated::after {
+        animation: none;
+    }
+
+}
+
+/* Alert */
+.tb-alert {
+    display: flex;
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--app-border);
+    border-left: 3px solid var(--ops-warn);
+    border-radius: var(--app-radius);
+    background-color: var(--app-surface);
+    box-shadow: var(--app-shadow);
+}
+
+.tb-alert.is-crit {
+    border-left-color: var(--ops-crit);
+}
+
+.tb-alert-icon {
+    font-size: 1.15rem;
+    color: var(--ops-warn);
+}
+
+.tb-alert.is-crit .tb-alert-icon {
+    color: var(--ops-crit);
+}
+
+.tb-alert-title {
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    color: var(--app-heading);
+}
+
+.tb-alert-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tb-alert-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--app-text);
+}
+
+.tb-sev {
+    min-width: 4.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.tb-sev.is-crit { color: var(--ops-crit); }
+.tb-sev.is-warn { color: var(--ops-warn); }
+
+/* Card basics */
+.ops .card-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.25rem;
+}
+
+.ops .card-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--app-heading);
+}
+
+.subheader {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1rem;
+    text-transform: uppercase;
+    color: var(--app-muted);
+}
+
+.tb-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.tb-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.25rem;
+    margin-bottom: 1rem;
+    font-size: 0.8125rem;
+    color: var(--app-muted);
+}
+
+.tb-card-meta strong {
+    margin-left: 0.2rem;
+    font-weight: 600;
+    color: var(--app-heading);
+}
+
+.tb-empty {
+    padding: 1.5rem 0;
+    color: var(--app-muted);
+    text-align: center;
+}
+
+/* Welcome card */
+.tb-welcome {
+    background: linear-gradient(135deg, rgba(var(--app-primary-rgb), 0.09), rgba(var(--app-primary-rgb), 0.02) 60%), var(--app-surface);
+}
+
+.tb-welcome .card-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.tb-welcome-title {
+    margin-bottom: 0.4rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--app-heading);
+}
+
+.tb-welcome-sub {
+    max-width: 22rem;
+    margin-bottom: 1.5rem;
+    color: var(--app-text);
+}
+
+.tb-welcome-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.tb-mini-value {
+    margin: 0.2rem 0 0.4rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--app-heading);
+}
+
+.tb-mini-bar {
+    width: 6.5rem;
+    height: 4px;
+    border-radius: 2px;
+    background-color: var(--app-grid);
+    overflow: hidden;
+}
+
+.tb-mini-bar > span {
+    display: block;
+    height: 100%;
+    background-color: var(--ops-ok);
+}
+
+.tb-mini-bar.is-warn > span { background-color: var(--ops-warn); }
+.tb-mini-bar.is-crit > span { background-color: var(--ops-crit); }
+
+.tb-illustration {
+    flex-shrink: 0;
+    width: 12.5rem;
+    height: auto;
+}
+
+.tb-ill-shadow { fill: rgba(var(--app-primary-rgb), 0.08); }
+.tb-ill-rack { fill: var(--app-surface); stroke: var(--app-border); stroke-width: 2; }
+.tb-ill-unit { fill: var(--app-bg); stroke: var(--app-border); }
+.tb-ill-line { fill: rgba(var(--app-primary-rgb), 0.35); }
+.tb-ill-led-ok { fill: var(--app-success); }
+.tb-ill-led-warn { fill: var(--app-warning); }
+.tb-ill-badge { fill: var(--app-primary); }
+.tb-ill-check { fill: none; stroke: #fff; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.tb-ill-spark { fill: var(--app-warning); }
+.tb-ill-dot-a { fill: var(--app-danger); }
+.tb-ill-dot-b { fill: var(--app-primary); }
+
+@media (max-width: 575.98px) {
+    .tb-illustration {
+        display: none;
+    }
+
+}
+
+/* Stat cards */
+.tb-stat {
+    overflow: hidden;
+}
+
+.tb-stat-value {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0.25rem 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--app-heading);
+}
+
+.tb-stat-text {
+    font-size: 0.8125rem;
+    color: var(--app-text);
+}
+
+.tb-stat-side {
+    font-size: 0.8125rem;
+    color: var(--app-muted);
+}
+
+.ops .kpi-delta {
+    padding: 0;
+    background: none !important;
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.ops .kpi-delta i {
+    order: 2;
+    font-size: 1rem;
+}
+
+.ops .kpi-delta span {
+    display: none;
+}
+
+.ops .kpi-delta.flat {
+    color: var(--app-muted);
+}
+
+.tb-chart-bleed {
+    height: 3.75rem;
+    margin-top: auto;
+}
+
+.tb-chart-sm {
+    height: 3rem;
+}
+
+.tb-chart-bars {
+    height: 2.5rem;
+    margin-top: 0.75rem;
+}
+
+.tb-progress {
+    display: block;
+    height: 4px;
+    margin-top: 0.4rem;
+    border-radius: 2px;
+    background-color: var(--app-grid);
+    overflow: hidden;
+}
+
+.tb-progress > span {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background-color: var(--app-primary);
+}
+
+.tb-progress.is-warn > span { background-color: var(--ops-warn); }
+.tb-progress.is-crit > span { background-color: var(--ops-crit); }
+
+/* Two-part meter (Storage > Volumes): live data, then garbage */
+.tb-progress.is-split {
+    display: flex;
+}
+
+.tb-progress.is-split > span {
+    flex: 0 0 auto;
+    border-radius: 0;
+}
+
+.tb-progress.is-split > span.is-garbage {
+    background-color: var(--app-danger);
+}
+
+/* Bootstrap progress bars inside tables (Volume Servers etc.) drawn like the
+   dashboard meter: a thin 4px track. Bars that print a label inside
+   (plugin job progress) keep their height. */
+.table td:not(.plugin-job-progress) .progress {
+    height: 4px !important;
+    border-radius: 2px;
+    background-color: var(--app-grid) !important;
+}
+
+.table td:not(.plugin-job-progress) .progress .progress-bar {
+    font-size: 0;
+}
+
+.table td:not(.plugin-job-progress) .progress .progress-bar.bg-success,
+.table td:not(.plugin-job-progress) .progress .progress-bar.bg-primary,
+.table td:not(.plugin-job-progress) .progress .progress-bar.bg-info {
+    background-color: var(--app-primary) !important;
+}
+
+.table td:not(.plugin-job-progress) .progress .progress-bar.bg-warning {
+    background-color: var(--app-warning) !important;
+}
+
+.table td:not(.plugin-job-progress) .progress .progress-bar.bg-danger {
+    background-color: var(--app-danger) !important;
+}
+
+/* Row action buttons (view, vacuum, delete...): one neutral square icon
+   button, the icon carrying the colour, the same in every table. */
+.table td .btn-sm[class*="btn-outline-"],
+.table td .btn-group-sm > .btn[class*="btn-outline-"] {
+    --bs-btn-bg: var(--app-surface);
+    --bs-btn-border-color: var(--app-border);
+    --bs-btn-hover-bg: var(--app-hover);
+    --bs-btn-hover-border-color: var(--app-border);
+    --bs-btn-active-bg: var(--app-hover);
+    --bs-btn-active-border-color: var(--app-border);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    border-color: var(--app-border);
+    background-color: var(--app-surface);
+    font-size: 0.8125rem;
+    line-height: 1;
+}
+
+.table td .btn-sm[class*="btn-outline-"]:hover,
+.table td .btn-group-sm > .btn[class*="btn-outline-"]:hover {
+    border-color: var(--app-border);
+    background-color: var(--app-hover);
+}
+
+.table td .btn-sm.btn-outline-primary,
+.table td .btn-sm.btn-outline-primary:hover  { --bs-btn-color: var(--app-primary); --bs-btn-hover-color: var(--app-primary); --bs-btn-active-color: var(--app-primary); color: var(--app-primary); }
+.table td .btn-sm.btn-outline-secondary,
+.table td .btn-sm.btn-outline-secondary:hover,
+.table td .btn-sm.btn-outline-dark,
+.table td .btn-sm.btn-outline-dark:hover     { --bs-btn-color: var(--app-text); --bs-btn-hover-color: var(--app-heading); --bs-btn-active-color: var(--app-heading); color: var(--app-text); }
+.table td .btn-sm.btn-outline-info,
+.table td .btn-sm.btn-outline-info:hover     { --bs-btn-color: var(--app-info-text); --bs-btn-hover-color: var(--app-info-text); color: var(--app-info-text); }
+.table td .btn-sm.btn-outline-success,
+.table td .btn-sm.btn-outline-success:hover  { --bs-btn-color: var(--app-success-text); --bs-btn-hover-color: var(--app-success-text); color: var(--app-success-text); }
+.table td .btn-sm.btn-outline-warning,
+.table td .btn-sm.btn-outline-warning:hover  { --bs-btn-color: var(--app-warning); --bs-btn-hover-color: var(--app-warning); color: var(--app-warning); }
+.table td .btn-sm.btn-outline-danger,
+.table td .btn-sm.btn-outline-danger:hover   { --bs-btn-color: var(--app-danger); --bs-btn-hover-color: var(--app-danger); color: var(--app-danger); }
+
+.tb-cell-meter .tb-progress,
+.topo-node .tb-progress {
+    margin-top: 0;
+}
+
+.tb-cell-meter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.tb-cell-meter .tb-progress {
+    width: 4.5rem;
+}
+
+.tb-cell-meter .num {
+    min-width: 2.5rem;
+    text-align: right;
+}
+
+/* Gauge */
+.tb-gauge {
+    position: relative;
+    width: 9.5rem;
+    height: 9.5rem;
+    margin: 0 auto;
+}
+
+.tb-gauge svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(135deg);
+}
+
+.tb-gauge-track,
+.tb-gauge-bar {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+}
+
+.tb-gauge-track { stroke: var(--app-grid); }
+.tb-gauge-bar { stroke: var(--app-primary); }
+.tb-gauge-bar.is-warn { stroke: var(--ops-warn); }
+.tb-gauge-bar.is-crit { stroke: var(--ops-crit); }
+
+.tb-gauge-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.tb-gauge-value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--app-heading);
+}
+
+/* Service tiles */
+.tb-tile {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.9rem;
+    height: 100%;
+    padding: 1rem 1.25rem;
+    color: inherit;
+}
+
+.tb-tile-link {
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+}
+
+.tb-tile-link:hover {
+    border-color: var(--app-primary) !important;
+}
+
+.tb-tile-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--app-radius-sm);
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.tb-tile-icon.is-primary { background-color: var(--app-primary); }
+.tb-tile-icon.is-green { background-color: var(--app-success); }
+.tb-tile-icon.is-dark { background-color: var(--app-dark); }
+.tb-tile-icon.is-azure { background-color: var(--app-info); }
+
+.tb-tile > div {
+    min-width: 0;
+}
+
+.tb-tile-title {
+    font-weight: 500;
+    color: var(--app-heading);
+}
+
+.tb-tile-sub {
+    overflow: hidden;
+    font-size: 0.8125rem;
+    color: var(--app-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Chart card */
+.tb-chart-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.tb-chart-main {
+    flex: 1 1 auto;
+    min-height: 15rem;
+}
+
+.tb-seg {
+    display: inline-flex;
+}
+
+.ops .chart-switch .btn {
+    padding: 0.25rem 0.65rem;
+    border-radius: 0;
+}
+
+.ops .chart-switch .btn:first-child {
+    border-radius: var(--app-radius-sm) 0 0 var(--app-radius-sm);
+}
+
+.ops .chart-switch .btn:last-child {
+    border-radius: 0 var(--app-radius-sm) var(--app-radius-sm) 0;
+}
+
+.ops .chart-switch .btn + .btn {
+    margin-left: -1px;
+}
+
+/* Topology */
+.topo-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    font-size: 0.75rem;
+    color: var(--app-muted);
+}
+
+.topo-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.topo-legend i {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+}
+
+.topo-legend .is-ok { background-color: var(--ops-ok); }
+.topo-legend .is-warn { background-color: var(--ops-warn); }
+.topo-legend .is-crit { background-color: var(--ops-crit); }
+
+.topo-dc + .topo-dc {
+    margin-top: 1rem;
+}
+
+.topo-dc-name {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--app-muted);
+}
+
+.topo-racks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.75rem;
+}
+
+.topo-rack {
+    padding: 0.65rem;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+    background-color: var(--app-bg);
+}
+
+.topo-rack-name {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--app-muted);
+}
+
+.topo-rack-name i {
+    margin-right: 0.35rem;
+}
+
+.topo-nodes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: 0.5rem;
+}
+
+.topo-node {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-sm);
+    background-color: var(--app-surface);
+    color: var(--app-heading) !important;
+    text-decoration: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.topo-node:hover {
+    border-color: var(--app-primary);
+    box-shadow: var(--app-shadow);
+}
+
+.topo-node > .topo-addr::before {
+    content: "";
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-right: 0.45rem;
+    border-radius: 50%;
+    background-color: var(--ops-ok);
+    vertical-align: middle;
+}
+
+.topo-node.is-warn > .topo-addr::before { background-color: var(--ops-warn); }
+.topo-node.is-crit > .topo-addr::before { background-color: var(--ops-crit); }
+
+.topo-addr {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topo-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--app-muted);
+}
+
+/* Using storage */
+.tb-storage-head {
+    margin-bottom: 0.75rem;
+    color: var(--app-text);
+}
+
+.tb-storage-head strong {
+    color: var(--app-heading);
+}
+
+.tb-storage-bar {
+    display: flex;
+    gap: 2px;
+    height: 0.5rem;
+    margin-bottom: 0.9rem;
+    border-radius: 4px;
+    background-color: var(--app-grid);
+    overflow: hidden;
+}
+
+.tb-storage-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    font-size: 0.875rem;
+    color: var(--app-heading);
+}
+
+.tb-storage-legend i {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-right: 0.4rem;
+    border-radius: 50%;
+}
+
+.seg-t0 { background-color: var(--app-primary); }
+.seg-t1 { background-color: var(--app-info); }
+.seg-t2 { background-color: var(--app-success); }
+.seg-t3 { background-color: var(--app-warning); }
+.seg-free { background-color: var(--app-grid); }
+
+/* Tables */
+.tb-table {
+    font-size: 0.875rem;
+}
+
+.tb-table thead th {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--app-border);
+    background-color: var(--app-bg);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--app-muted);
+    white-space: nowrap;
+}
+
+.tb-table thead th[data-sort] {
+    cursor: pointer;
+    user-select: none;
+}
+
+.tb-table thead th[data-sort]:hover {
+    color: var(--app-heading);
+}
+
+.tb-table thead th[data-sort]::after {
+    content: "\2195";
+    margin-left: 0.3rem;
+    opacity: 0.35;
+}
+
+.tb-table thead th[aria-sort="ascending"]::after {
+    content: "\2191";
+    opacity: 1;
+}
+
+.tb-table thead th[aria-sort="descending"]::after {
+    content: "\2193";
+    opacity: 1;
+}
+
+.tb-table td.num,
+.tb-table td .num {
+    white-space: nowrap;
+}
+
+.tb-table td {
+    padding: 0.7rem 0.75rem;
+    border-bottom: 1px solid var(--app-border);
+    vertical-align: middle;
+    color: var(--app-text);
+}
+
+.tb-table th:first-child,
+.tb-table td:first-child {
+    padding-left: 1.25rem;
+}
+
+.tb-table th:last-child,
+.tb-table td:last-child {
+    padding-right: 1.25rem;
+}
+
+.tb-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.tb-table tbody tr:hover > td {
+    background-color: var(--app-hover);
+}
+
+.card > .table-responsive:last-child .tb-table {
+    border-bottom-left-radius: var(--app-radius);
+    border-bottom-right-radius: var(--app-radius);
+}
+
+.tb-avatar {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    margin-right: 0.65rem;
+    border-radius: var(--app-radius-sm);
+    background-color: var(--app-hover);
+    color: var(--app-text);
+    font-size: 0.9rem;
+}
+
+.tb-sub {
+    font-size: 0.75rem;
+    color: var(--app-muted);
+}
+
+.tb-sub-inline {
+    margin-left: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--app-muted);
+}
+
+.tb-badge {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    border-radius: var(--app-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.tb-badge.is-azure {
+    background-color: rgba(66, 153, 225, 0.12);
+    color: var(--app-info);
+}
+
+.tb-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--app-border);
+    font-size: 0.875rem;
+}
+
+.tb-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tb-search .form-control {
+    width: 12rem;
+    border-color: var(--app-border);
+}
+
+.tb-card-footer {
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--app-border);
+    background-color: transparent;
+    font-size: 0.875rem;
+    color: var(--app-muted);
+}
+
+.tb-card-footer strong {
+    color: var(--app-heading);
+}
+
+/* ---------------------------------------------------------------
+   Shared controls: the ops dashboard's (Tabler) look applied to the
+   Bootstrap patterns the other admin pages are built from. Markup is
+   unchanged; only these common classes are restyled.
+   --------------------------------------------------------------- */
+
+/* Page header: "<div class='d-flex … border-bottom'><h1 class='h2'>…" */
+main .border-bottom:has(h1) {
+    margin: 0.25rem 0 1.25rem !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border-bottom: 0 !important;
+}
+
+/* Secondary buttons in page headers use the dashboard's neutral bordered
+   button (.tb-btn); the page's main action keeps btn-primary. */
+main :is(.border-bottom, .d-sm-flex, .d-flex):has(> h1, > div > h1) > :not(:has(h1)) :is(.btn-outline-primary, .btn-outline-secondary, .btn-outline-info, .btn-outline-success, .btn-outline-dark) {
+    --bs-btn-color: var(--app-heading);
+    --bs-btn-bg: var(--app-surface);
+    --bs-btn-border-color: var(--app-border);
+    --bs-btn-hover-color: var(--app-primary);
+    --bs-btn-hover-bg: var(--app-surface);
+    --bs-btn-hover-border-color: var(--app-primary);
+    --bs-btn-active-color: var(--app-primary);
+    --bs-btn-active-bg: var(--app-hover);
+    --bs-btn-active-border-color: var(--app-primary);
+    color: var(--bs-btn-color);
+    background-color: var(--bs-btn-bg);
+    border-color: var(--bs-btn-border-color);
+}
+
+main :is(.border-bottom, .d-sm-flex, .d-flex):has(> h1, > div > h1) > :not(:has(h1)) :is(.btn-outline-primary, .btn-outline-secondary, .btn-outline-info, .btn-outline-success, .btn-outline-dark):hover {
+    color: var(--bs-btn-hover-color);
+    background-color: var(--bs-btn-hover-bg);
+    border-color: var(--bs-btn-hover-border-color);
+}
+
+/* Title icons are muted, as on the dashboard and Cluster pages */
+main h1 > i.bi:first-child {
+    color: var(--app-muted);
+}
+
+main h1.h2,
+main h1.h3,
+main .border-bottom > .h2 {
+    margin-bottom: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--app-heading);
+}
+
+main h1.h2 > i,
+main h1.h3 > i,
+main h2:has(> i.bi:first-child) > i {
+    font-size: 1.1rem;
+}
+
+/* Page titles written as a plain <h2> with a leading icon (worker pages) */
+main h2:has(> i.bi:first-child) {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--app-heading);
+}
+
+main h2:has(> i.bi:first-child) + p {
+    margin-top: 0.2rem;
+    font-size: 0.875rem;
+}
+
+/* Stat cards. The other pages build summary cards four different ways;
+   all of them are restyled to match the dashboard's .tb-stat card exactly
+   (same padding, label, value and spacing, no icon square):
+     1. "card border-left-* shadow h-100 py-2" + .text-xs label + .h5 value
+     2. "card text-bg-*" + h6.card-title + h4 (+ small)   — EC, collections
+     3. "card text-center" + h5.card-title + h3            — MQ topics
+     4. "card border-* h-100" + .text-uppercase.small + h4 — plugin status */
+.card[class*="border-left-"],
+.card[class*="text-bg-"],
+.card.text-center:has(> .card-body > h5.card-title + h3),
+.card:has(> .card-body.text-center > .text-uppercase.small + h4) {
+    overflow: hidden;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border: 1px solid var(--app-border) !important;
+    background-color: var(--app-surface) !important;
+    color: var(--app-text) !important;
+    text-align: left;
+}
+
+.card[class*="border-left-"] > .card-body,
+.card[class*="text-bg-"] > .card-body,
+.card.text-center:has(> .card-body > h5.card-title + h3) > .card-body,
+.card > .card-body.text-center:has(> .text-uppercase.small + h4) {
+    text-align: left !important;
+}
+
+/* Label: same as .subheader */
+.card[class*="border-left-"] .text-xs,
+.card[class*="text-bg-"] .card-title,
+.card.text-center > .card-body > h5.card-title,
+.card > .card-body.text-center > .text-uppercase.small {
+    margin: 0 !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.04em;
+    line-height: 1rem;
+    text-transform: uppercase;
+    color: var(--app-muted) !important;
+}
+
+/* Value: same as .tb-stat-value */
+.card[class*="border-left-"] :is(.h6, .h5, .h4),
+.card[class*="text-bg-"] :is(h4, .h4),
+.card.text-center > .card-body > h5.card-title + h3,
+.card > .card-body.text-center > .text-uppercase.small + h4 {
+    margin: 0.25rem 0 0 !important;
+    font-size: 1.5rem;
+    font-weight: 600 !important;
+    line-height: 1.2;
+    color: var(--app-heading) !important;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+}
+
+.row:has(> [class*="col"] > .card[class*="border-left-"]) > [class*="col"] > .card,
+.row:has(> [class*="col"] > .card[class*="text-bg-"]) > [class*="col"] > .card,
+.row:has(> [class*="col"] > .card.text-center > .card-body > h5.card-title + h3) > [class*="col"] > .card {
+    height: 100%;
+}
+
+/* Worker lanes: the "Next run" card holds a full date and time. Keep it on
+   one line and let it shrink with the card rather than wrap. */
+.tb-stat-next-run {
+    container-type: inline-size;
+}
+
+.tb-stat-next-run .tb-stat-value {
+    flex-wrap: nowrap;
+    font-size: min(1.5rem, 9cqi);
+    white-space: nowrap;
+}
+
+/* Supporting line: same as .tb-stat-text */
+.card[class*="text-bg-"] .card-body small {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--app-text);
+}
+
+/* The dashboard stat cards carry no icon */
+.card[class*="border-left-"] .col-auto:has(> i),
+.card[class*="text-bg-"] .card-body .align-self-center:has(> i) {
+    display: none;
+}
+
+.card[class*="border-left-"] .row.no-gutters {
+    margin: 0;
+}
+
+.card[class*="border-left-"] .row.no-gutters > .col {
+    padding: 0;
+}
+
+/* Rows of stat cards: same gutter and spacing as the dashboard (row g-3 mb-3) */
+.row:has(> [class*="col"] > .card[class*="border-left-"]),
+.row:has(> [class*="col"] > .card[class*="text-bg-"]),
+.row:has(> [class*="col"] > .card.text-center > .card-body > h5.card-title + h3),
+.row:has(> [class*="col"] > .card > .card-body.text-center > .text-uppercase.small + h4) {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
+    margin-bottom: 1rem !important;
+}
+
+.row:has(> [class*="col"] > .card[class*="border-left-"]) > [class*="col"],
+.row:has(> [class*="col"] > .card[class*="text-bg-"]) > [class*="col"],
+.row:has(> [class*="col"] > .card.text-center > .card-body > h5.card-title + h3) > [class*="col"],
+.row:has(> [class*="col"] > .card > .card-body.text-center > .text-uppercase.small + h4) > [class*="col"] {
+    margin-bottom: 0 !important;
+}
+
+/* Narrow stat cards (e.g. six across on Cluster Volumes) holding text values
+   such as a data center name: shrink the value instead of breaking words. */
+.card[class*="border-left-"] {
+    container-type: inline-size;
+}
+
+@container (max-width: 13rem) {
+    .card[class*="border-left-"] :is(.h5, .h4) {
+        font-size: 1.125rem;
+        overflow-wrap: normal;
+    }
+}
+
+/* Cards outlined in a status colour ("card border-info" etc.) */
+.card.border-primary,
+.card.border-info,
+.card.border-success,
+.card.border-warning,
+.card.border-danger,
+.card.border-secondary {
+    border-color: var(--app-border) !important;
+}
+
+/* Metric blocks inside detail cards (Volume Details "Statistics & Health",
+   EC Volume "Shard Distribution"): value-then-caption markup shown as the
+   dashboard's label-above-value, in heading colour rather than green/red. */
+.card-body .text-center:has(> .h4 + small),
+.card-body .border.rounded:has(> h3 + small) {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 0.25rem;
+    text-align: left;
+}
+
+.card-body .border.rounded:has(> h3 + small) {
+    padding: 1rem 1.25rem !important;
+    border-color: var(--app-border) !important;
+    border-radius: var(--app-radius) !important;
+}
+
+.card-body .text-center:has(> .h4 + small) > small,
+.card-body .border.rounded:has(> h3 + small) > small {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1rem;
+    text-transform: uppercase;
+    color: var(--app-muted) !important;
+}
+
+.card-body .text-center:has(> .h4 + small) > .h4,
+.card-body .border.rounded:has(> h3 + small) > h3 {
+    margin: 0 !important;
+    font-size: 1.5rem;
+    font-weight: 600 !important;
+    line-height: 1.2;
+    color: var(--app-heading) !important;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Smaller detail values ("Vacuum revision", "Last modified") */
+.card-body .text-center:has(> .h6 + small) {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 0.25rem;
+    text-align: left;
+}
+
+.card-body .text-center:has(> .h6 + small) > small {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1rem;
+    text-transform: uppercase;
+    color: var(--app-muted) !important;
+}
+
+.card-body .text-center:has(> .h6 + small) > .h6 {
+    margin: 0 !important;
+    font-size: 0.9375rem;
+    font-weight: 600 !important;
+    color: var(--app-heading) !important;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Pills (worker job-type sub-tabs): Tabler palette instead of Bootstrap blue */
+.nav-pills {
+    --bs-nav-pills-link-active-bg: var(--app-primary);
+    --bs-nav-pills-link-active-color: #fff;
+    --bs-nav-pills-border-radius: var(--app-radius-sm);
+    --bs-nav-link-color: var(--app-text);
+    --bs-nav-link-hover-color: var(--app-primary);
+}
+
+.nav-pills .nav-link {
+    font-size: 0.875rem;
+}
+
+.nav-pills .nav-link:not(.active):hover {
+    background-color: var(--app-hover);
+}
+
+/* Worker capability badges were 0.72rem, below the site's smallest size */
+.badge.plugin-capability-badge {
+    font-size: 0.75rem;
+}
+
+/* Disabled neutral buttons (File Browser pagination) */
+.btn-outline-secondary {
+    --bs-btn-disabled-color: var(--app-muted);
+    --bs-btn-disabled-bg: var(--app-surface);
+    --bs-btn-disabled-border-color: var(--app-border);
+}
+
+/* Inline code (paths, endpoints, permissions, IDs): neutral chip instead of
+   Bootstrap's pink, as on the dashboard. Code blocks inside <pre> are left alone. */
+:not(pre) > code {
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.25rem;
+    background-color: var(--app-hover);
+    color: var(--app-heading);
+    font-size: 0.8125rem;
+}
+
+/* Bootstrap light/white helpers follow the theme tokens so they don't show
+   as bright blocks in dark mode (code samples, tag lists, filter bars). */
+.bg-light {
+    background-color: var(--app-bg) !important;
+}
+
+.bg-white {
+    background-color: var(--app-surface) !important;
+}
+
+pre {
+    color: var(--app-text);
+}
+
+html[data-theme="dark"] .text-dark:not(.badge) {
+    color: var(--app-heading) !important;
+}
+
+/* "thead.table-light" (Buckets, S3 Tables...): same header row as every other
+   table, in both themes. */
+.table > thead.table-light {
+    --bs-table-bg: var(--app-bg);
+    --bs-table-color: var(--app-muted);
+    --bs-table-border-color: var(--app-border);
+}
+
+html[data-theme="dark"] .table > thead.table-light {
+    --bs-table-bg: var(--app-hover);
+}
+
+/* Empty states ("No buckets found" etc.): quiet, like the dashboard's
+   .tb-empty, instead of a 3em icon over a large heading. */
+.text-center:has(> i.icon-3x) > i.icon-3x {
+    display: inline-block;
+    margin-bottom: 0.5rem !important;
+    font-size: 2rem;
+    color: var(--app-muted) !important;
+    opacity: 0.6;
+}
+
+.text-center:has(> i.icon-3x) :is(h4, h5) {
+    margin-bottom: 0.25rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--app-heading) !important;
+}
+
+.text-center:has(> i.icon-3x) p {
+    margin-bottom: 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--app-muted);
+}
+
+/* Card headers and titles */
+.card-header {
+    padding: 0.9rem 1.25rem !important;
+    border-bottom: 1px solid var(--app-border);
+    background-color: var(--app-surface);
+}
+
+.card-header h5,
+.card-header h6,
+.card-header .card-title,
+.card-header h6.text-primary,
+.card-header h5.text-primary,
+.card-header .font-weight-bold.text-primary {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500 !important;
+    color: var(--app-heading) !important;
+}
+
+.card-header h5 > i,
+.card-header h6 > i {
+    color: var(--app-muted);
+}
+
+.card-title {
+    font-weight: 500;
+    color: var(--app-heading);
+}
+
+/* Tables */
+.table {
+    --bs-table-striped-bg: var(--app-bg);
+    --bs-table-hover-bg: var(--app-hover);
+    font-size: 0.875rem;
+}
+
+.table > thead > tr > th,
+.table thead.table-light th {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--app-border);
+    background-color: var(--app-bg) !important;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--app-muted) !important;
+    white-space: nowrap;
+}
+
+.table > thead > tr > th a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.table > tbody > tr > td {
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+    border-bottom-color: var(--app-border);
+    vertical-align: middle;
+}
+
+.table-sm > tbody > tr > td {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+}
+
+.table > tbody > tr:last-child > td {
+    border-bottom: 0;
+}
+
+/* Tables placed straight into a card (no card-body padding) get the same
+   edge inset as the dashboard's flush tables. */
+.card > .table > * > tr > :first-child,
+.card > .table-responsive > .table > * > tr > :first-child,
+.card-body.p-0 > .table > * > tr > :first-child,
+.card-body.p-0 > .table-responsive > .table > * > tr > :first-child {
+    padding-left: 1.25rem;
+}
+
+.card > .table > * > tr > :last-child,
+.card > .table-responsive > .table > * > tr > :last-child,
+.card-body.p-0 > .table > * > tr > :last-child,
+.card-body.p-0 > .table-responsive > .table > * > tr > :last-child {
+    padding-right: 1.25rem;
+}
+
+.table a:not(.btn) {
+    text-decoration: none;
+}
+
+/* Badges: soft (tinted) like the ops dashboard's status labels */
+.badge {
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+.badge.bg-primary   { background-color: rgba(var(--app-primary-rgb), 0.12) !important; color: var(--app-primary) !important; }
+.badge.bg-success   { background-color: rgba(var(--app-success-rgb), 0.14) !important; color: var(--app-success-text) !important; }
+.badge.bg-info      { background-color: rgba(var(--app-info-rgb), 0.14) !important; color: var(--app-info-text) !important; }
+.badge.bg-warning   { background-color: rgba(var(--app-warning-rgb), 0.14) !important; color: var(--app-warning) !important; }
+.badge.bg-danger    { background-color: rgba(var(--app-danger-rgb), 0.12) !important; color: var(--app-danger) !important; }
+.badge.bg-secondary,
+.badge.bg-light     { background-color: var(--app-hover) !important; color: var(--app-text) !important; }
+.badge.bg-dark      { background-color: var(--app-dark) !important; color: #fff !important; }
+
+/* Buttons */
+.btn {
+    border-radius: var(--app-radius-sm);
+}
+
+.btn-outline-secondary,
+.btn-light {
+    border-color: var(--app-border);
+    background-color: var(--app-surface);
+    color: var(--app-heading);
+}
+
+.btn-outline-secondary:hover,
+.btn-light:hover {
+    border-color: var(--app-primary);
+    background-color: var(--app-surface);
+    color: var(--app-primary);
+}
+
+/* Form controls */
+.form-control,
+.form-select {
+    border-color: var(--app-border);
+    border-radius: var(--app-radius-sm);
+    background-color: var(--app-surface);
+    color: var(--app-heading);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: rgba(var(--app-primary-rgb), 0.5);
+    box-shadow: 0 0 0 0.2rem rgba(var(--app-primary-rgb), 0.12);
+}
+
+.form-label {
+    font-weight: 400;
+    color: var(--app-heading);
+}
+
+.input-group-text {
+    border-color: var(--app-border);
+    background-color: var(--app-bg);
+    color: var(--app-muted);
+}
+
+/* Tabs: underline style, as on the dashboard */
+.nav-tabs {
+    border-bottom: 1px solid var(--app-border);
+}
+
+.nav-tabs .nav-link {
+    margin-bottom: -1px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: none;
+    color: var(--app-text);
+}
+
+.nav-tabs .nav-link:hover {
+    border-bottom-color: var(--app-border);
+    color: var(--app-heading);
+}
+
+.nav-tabs .nav-link.active {
+    border-bottom-color: var(--app-primary);
+    background: none;
+    color: var(--app-primary);
+}
+
+/* Control sizes: Bootstrap sizes buttons and inputs at 1rem, larger than the
+   0.875rem body text. Tabler keeps them the same size as the text around them. */
+.btn,
+.form-control,
+.form-select,
+.input-group-text,
+.form-check-label,
+.form-label {
+    font-size: 0.875rem;
+}
+
+.btn-sm,
+.btn-group-sm > .btn,
+.form-control-sm,
+.form-select-sm,
+.input-group-sm > .form-control,
+.input-group-sm > .form-select,
+.input-group-sm > .input-group-text {
+    font-size: 0.8125rem;
+}
+
+.btn-lg,
+.form-control-lg,
+.form-select-lg {
+    font-size: 1rem;
+}
+
+.form-label {
+    margin-bottom: 0.375rem;
+}
+
+.form-text {
+    margin-top: 0.3125rem;
+    font-size: 0.8125rem;
+    color: var(--app-muted);
+}
+
+.form-control::placeholder {
+    color: var(--app-muted);
+    opacity: 0.8;
+}
+
+.form-check-input {
+    border-color: var(--app-border);
+}
+
+.form-check-input:checked {
+    border-color: var(--app-primary);
+    background-color: var(--app-primary);
+}
+
+/* Button colours from the Tabler palette. Secondary is the neutral bordered
+   button used on the dashboard (Cancel, Close), not Bootstrap's solid grey. */
+.btn-primary {
+    --bs-btn-bg: var(--app-primary);
+    --bs-btn-border-color: var(--app-primary);
+    --bs-btn-hover-bg: var(--app-primary-dark);
+    --bs-btn-hover-border-color: var(--app-primary-dark);
+    --bs-btn-active-bg: var(--app-primary-dark);
+    --bs-btn-active-border-color: var(--app-primary-dark);
+    --bs-btn-disabled-bg: var(--app-primary);
+    --bs-btn-disabled-border-color: var(--app-primary);
+    box-shadow: none;
+}
+
+.btn-secondary {
+    --bs-btn-color: var(--app-heading);
+    --bs-btn-bg: var(--app-surface);
+    --bs-btn-border-color: var(--app-border);
+    --bs-btn-hover-color: var(--app-primary);
+    --bs-btn-hover-bg: var(--app-surface);
+    --bs-btn-hover-border-color: var(--app-primary);
+    --bs-btn-active-color: var(--app-primary);
+    --bs-btn-active-bg: var(--app-hover);
+    --bs-btn-active-border-color: var(--app-primary);
+    --bs-btn-disabled-color: var(--app-muted);
+    --bs-btn-disabled-bg: var(--app-surface);
+    --bs-btn-disabled-border-color: var(--app-border);
+}
+
+.btn-success { --bs-btn-bg: var(--app-success); --bs-btn-border-color: var(--app-success); --bs-btn-hover-bg: var(--app-success-text); --bs-btn-hover-border-color: var(--app-success-text); --bs-btn-active-bg: var(--app-success-text); }
+.btn-danger  { --bs-btn-bg: var(--app-danger);  --bs-btn-border-color: var(--app-danger);  --bs-btn-hover-bg: #b92f2f; --bs-btn-hover-border-color: #b92f2f; --bs-btn-active-bg: #b92f2f; }
+.btn-warning { --bs-btn-color: #fff; --bs-btn-bg: var(--app-warning); --bs-btn-border-color: var(--app-warning); --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #d65906; --bs-btn-hover-border-color: #d65906; --bs-btn-active-color: #fff; --bs-btn-active-bg: #d65906; }
+.btn-info    { --bs-btn-color: #fff; --bs-btn-bg: var(--app-info); --bs-btn-border-color: var(--app-info); --bs-btn-hover-color: #fff; --bs-btn-hover-bg: var(--app-info-text); --bs-btn-hover-border-color: var(--app-info-text); --bs-btn-active-color: #fff; --bs-btn-active-bg: var(--app-info-text); }
+
+.btn-outline-success { --bs-btn-color: var(--app-success-text); --bs-btn-border-color: rgba(var(--app-success-rgb), 0.5); --bs-btn-hover-bg: var(--app-success); --bs-btn-hover-border-color: var(--app-success); --bs-btn-active-bg: var(--app-success); }
+.btn-outline-danger  { --bs-btn-color: var(--app-danger); --bs-btn-border-color: rgba(var(--app-danger-rgb), 0.5); --bs-btn-hover-bg: var(--app-danger); --bs-btn-hover-border-color: var(--app-danger); --bs-btn-active-bg: var(--app-danger); }
+.btn-outline-warning { --bs-btn-color: var(--app-warning); --bs-btn-border-color: rgba(var(--app-warning-rgb), 0.5); --bs-btn-hover-color: #fff; --bs-btn-hover-bg: var(--app-warning); --bs-btn-hover-border-color: var(--app-warning); --bs-btn-active-color: #fff; --bs-btn-active-bg: var(--app-warning); }
+.btn-outline-info    { --bs-btn-color: var(--app-info-text); --bs-btn-border-color: rgba(var(--app-info-rgb), 0.5); --bs-btn-hover-color: #fff; --bs-btn-hover-bg: var(--app-info); --bs-btn-hover-border-color: var(--app-info); --bs-btn-active-color: #fff; --bs-btn-active-bg: var(--app-info); }
+
+/* Modals: Tabler style. White header with the title in heading colour; the
+   status headers (bg-danger etc., also set by modal-alerts.js) become a thin
+   coloured strip along the top instead of a solid block. */
+.modal {
+    --bs-modal-padding: 1.25rem 1.5rem;
+    --bs-modal-header-padding: 1rem 1.5rem;
+    --bs-modal-footer-gap: 0.5rem;
+    --bs-modal-bg: var(--app-surface);
+    --bs-modal-color: var(--app-text);
+    --bs-modal-border-color: var(--app-border);
+    --bs-modal-header-border-color: var(--app-border);
+    --bs-modal-footer-border-color: var(--app-border);
+    --bs-modal-border-radius: var(--app-radius);
+    --bs-modal-inner-border-radius: calc(var(--app-radius) - 1px);
+    --bs-modal-box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.14);
+}
+
+.modal-backdrop {
+    --bs-backdrop-bg: #171717;
+    --bs-backdrop-opacity: 0.32;
+}
+
+.modal-content {
+    overflow: hidden;
+    box-shadow: var(--bs-modal-box-shadow);
+    font-size: 0.875rem;
+}
+
+.modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5rem;
+    color: var(--app-heading);
+}
+
+.modal-title > i,
+.modal-title > .bi {
+    margin-right: 0 !important;
+    font-size: 1rem;
+    color: var(--app-muted);
+}
+
+/* Modal text follows the sidebar menu: 0.875rem, regular weight. */
+.modal-body h5, .modal-body .h5,
+.modal-body h6, .modal-body .h6 {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.modal-body .form-label,
+.modal-body label,
+.modal-body .form-check-label,
+.modal-body select option,
+.modal-footer .btn {
+    font-size: 0.875rem;
+    font-weight: 400;
+}
+
+.modal-body .form-label {
+    color: var(--app-heading);
+}
+
+.modal-footer {
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--app-bg);
+}
+
+.modal-footer > * {
+    margin: 0;
+}
+
+.modal-header[class*="bg-"] {
+    position: relative;
+    background-color: var(--app-surface) !important;
+    color: var(--app-heading) !important;
+}
+
+.modal-header[class*="bg-"]::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background-color: var(--modal-status, var(--app-primary));
+}
+
+.modal-header[class*="bg-"] .modal-title {
+    color: var(--app-heading) !important;
+}
+
+.modal-header.bg-danger  { --modal-status: var(--app-danger); }
+.modal-header.bg-warning { --modal-status: var(--app-warning); }
+.modal-header.bg-success { --modal-status: var(--app-success); }
+.modal-header.bg-info    { --modal-status: var(--app-info); }
+
+.modal-header[class*="bg-"] .modal-title > i,
+.modal-header[class*="bg-"] .modal-title > .bi {
+    color: var(--modal-status, var(--app-primary));
+}
+
+/* The white close button was only there for the solid headers. */
+.modal-header .btn-close-white {
+    --bs-btn-close-filter: none;
+    filter: none;
+}
+
+/* Alerts: same as the dashboard's .tb-alert, a white panel with a coloured
+   left edge and icon, instead of Bootstrap's tinted blocks. */
+.alert {
+    --alert-accent: var(--app-primary);
+    border: 1px solid var(--app-border);
+    border-left: 3px solid var(--alert-accent);
+    border-radius: var(--app-radius);
+    background-color: var(--app-surface);
+    box-shadow: var(--app-shadow);
+    color: var(--app-text);
+}
+
+.alert-info      { --alert-accent: var(--app-info); }
+.alert-success   { --alert-accent: var(--app-success); }
+.alert-warning   { --alert-accent: var(--app-warning); }
+.alert-danger    { --alert-accent: var(--app-danger); }
+.alert-secondary,
+.alert-light     { --alert-accent: var(--app-secondary); }
+
+.alert > i.bi:first-child,
+.alert > :first-child > i.bi:first-child,
+.alert .alert-heading > i.bi {
+    color: var(--alert-accent);
+}
+
+.alert strong,
+.alert .alert-heading {
+    color: var(--app-heading);
+}
+
+.alert .alert-link {
+    color: var(--app-primary);
+}
+
+.page-link {
+    border-color: var(--app-border);
+    color: var(--app-text);
+}
+
+.page-item.active .page-link {
+    border-color: var(--app-primary);
+    background-color: var(--app-primary);
+}
+
+/* Progress bars */
+.progress {
+    border-radius: 999px;
+    background-color: var(--app-grid);
+}
+
+/* ---------------------------------------------------------------
+   Dark theme (all admin pages). Bootstrap switches via data-bs-theme;
+   these override the app's own tokens and the few fixed colours.
+   --------------------------------------------------------------- */
+html[data-theme="dark"] {
+    --app-bg: #171717;
+    --app-surface: #212121;
+    --app-menu-bg: #1c1c1c;
+    --app-menu-active: rgba(66, 153, 225, 0.16);
+    --app-border: #333333;
+    --app-heading: #f5f5f5;
+    --app-text: #d4d4d4;
+    --app-muted: #a3a3a3;
+    --app-hover: #2a2a2a;
+    --app-grid: #333333;
+    --app-shadow: none;
+    --app-success-text: #5fd373;
+    --app-info-text: #6cb4ee;
+    color-scheme: dark;
+}
+
+html[data-theme="dark"] .modal-header .btn-close-white {
+    --bs-btn-close-filter: invert(1) grayscale(100%) brightness(200%);
+    filter: var(--bs-btn-close-filter);
+}
+
+html[data-theme="dark"] .modal-backdrop {
+    --bs-backdrop-bg: #000;
+    --bs-backdrop-opacity: 0.6;
+}
+
+html[data-theme="dark"] .modal-footer {
+    background-color: #1c1c1c;
+}
+
+/* Sortable column headers are links marked text-dark */
+.table thead th a,
+.table thead th a.text-dark {
+    color: inherit !important;
+}
+
+html[data-theme="dark"] .table thead th,
+html[data-theme="dark"] .progress,
+html[data-theme="dark"] .kpi-delta.flat {
+    background-color: var(--app-hover);
+}
+
+html[data-theme="dark"] .tb-tile-icon.is-dark {
+    background-color: #525252;
+}
+
+html[data-theme="dark"] .text-gray-300 {
+    color: #3a445a !important;
+}
+
+html[data-theme="dark"] .chart-tooltip {
+    background-color: #0d111a;
+    border: 1px solid var(--app-border);
+}
+
+html[data-theme="dark"] .sidebar .nav-link,
+html[data-theme="dark"] .dropdown-item {
+    color: var(--app-text);
+}
+
+html[data-theme="dark"] .tb-table tbody tr:hover > td {
+    background-color: var(--app-hover);
 }
 
 /* Responsive adjustments */
@@ -359,8 +2999,9 @@ main {
     .card-body {
         padding: 1rem;
     }
-    
+
     .h5 {
         font-size: 1rem;
     }
+
 }

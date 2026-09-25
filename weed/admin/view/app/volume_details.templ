@@ -8,11 +8,10 @@ import (
 )
 
 templ VolumeDetails(data dash.VolumeDetailsData) {
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="tb-page-header">
         <div>
-            <h1 class="h2">
-                <i class="bi bi-database me-2"></i>Volume Details
-            </h1>
+            <div class="tb-pretitle">Storage</div>
+            <h2 class="tb-page-title"><i class="bi bi-database me-2 text-secondary"></i>Volume Details</h2>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href={ dash.PUrl(ctx, "/admin") } class="text-decoration-none">Dashboard</a></li>
@@ -21,15 +20,13 @@ templ VolumeDetails(data dash.VolumeDetailsData) {
                 </ol>
             </nav>
         </div>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group me-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="history.back()">
-                    <i class="bi bi-arrow-left me-1"></i>Back
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.location.reload()">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-                </button>
-            </div>
+        <div class="tb-page-actions">
+            <button type="button" class="btn tb-btn" onclick="history.back()">
+                <i class="bi bi-arrow-left me-1"></i>Back
+            </button>
+            <button type="button" class="btn tb-btn" onclick="window.location.reload()">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+            </button>
         </div>
     </div>
 

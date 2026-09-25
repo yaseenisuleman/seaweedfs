@@ -6,11 +6,10 @@ import (
 )
 
 templ ClusterEcShards(data dash.ClusterEcShardsData) {
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="tb-page-header">
         <div>
-            <h1 class="h2">
-                <i class="bi bi-grid me-2"></i>EC Shards
-            </h1>
+            <div class="tb-pretitle">Storage</div>
+            <h2 class="tb-page-title"><i class="bi bi-grid me-2 text-secondary"></i>EC Shards</h2>
             if data.FilterCollection != "" {
                 <div class="d-flex align-items-center mt-2">
                     if data.FilterCollection == "default" {
@@ -28,81 +27,73 @@ templ ClusterEcShards(data dash.ClusterEcShardsData) {
                 </div>
             }
         </div>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group me-2">
-                <select class="form-select form-select-sm me-2" id="pageSizeSelect" onchange="changePageSize()" style="width: auto;">
-                    <option value="50" if data.PageSize == 50 { selected="selected" }>50 per page</option>
-                    <option value="100" if data.PageSize == 100 { selected="selected" }>100 per page</option>
-                    <option value="200" if data.PageSize == 200 { selected="selected" }>200 per page</option>
-                    <option value="500" if data.PageSize == 500 { selected="selected" }>500 per page</option>
-                </select>
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportEcShards()">
-                    <i class="bi bi-download me-1"></i>Export
-                </button>
-            </div>
+        <div class="tb-page-actions">
+            <select class="form-select form-select-sm" id="pageSizeSelect" onchange="changePageSize()" style="width: auto;">
+                <option value="50" if data.PageSize == 50 { selected="selected" }>50 per page</option>
+                <option value="100" if data.PageSize == 100 { selected="selected" }>100 per page</option>
+                <option value="200" if data.PageSize == 200 { selected="selected" }>200 per page</option>
+                <option value="500" if data.PageSize == 500 { selected="selected" }>500 per page</option>
+            </select>
+            <button type="button" class="btn tb-btn" onclick="exportEcShards()">
+                <i class="bi bi-download me-1"></i>Export
+            </button>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-bg-primary">
+    <div class="row row-deck g-3 mb-3">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card tb-stat h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title">Total Shards</h6>
-                            <h4 class="mb-0">{fmt.Sprintf("%d", data.TotalShards)}</h4>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bi bi-puzzle icon-2x"></i>
-                        </div>
+                        <div class="subheader">Total shards</div>
+                    </div>
+                    <div class="tb-stat-value"><span class="num">{fmt.Sprintf("%d", data.TotalShards)}</span></div>
+                    <div class="tb-stat-text">{ fmt.Sprintf("Across %d data centers, %d racks", data.DataCenterCount, data.RackCount) }</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card tb-stat h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div class="subheader">EC volumes</div>
+                    </div>
+                    <div class="tb-stat-value"><span class="num">{fmt.Sprintf("%d", data.TotalVolumes)}</span></div>
+                    <div class="tb-stat-text">
+                        if data.CollectionCount == 1 {
+                            In collection { data.SingleCollection }
+                        } else {
+                            { fmt.Sprintf("Across %d collections", data.CollectionCount) }
+                        }
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-bg-info">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card tb-stat h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title">EC Volumes</h6>
-                            <h4 class="mb-0">{fmt.Sprintf("%d", data.TotalVolumes)}</h4>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bi bi-database icon-2x"></i>
-                        </div>
+                        <div class="subheader">Healthy volumes</div>
                     </div>
+                    <div class="tb-stat-value"><span class="num">{fmt.Sprintf("%d", data.VolumesWithAllShards)}</span></div>
+                    <div class="tb-stat-text"><span class="status-dot is-ok me-1"></span>Complete (14/14 shards)</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-bg-success">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card tb-stat h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title">Healthy Volumes</h6>
-                            <h4 class="mb-0">{fmt.Sprintf("%d", data.VolumesWithAllShards)}</h4>
-                            <small>Complete (14/14 shards)</small>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bi bi-check-circle icon-2x"></i>
-                        </div>
+                        <div class="subheader">Degraded volumes</div>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-bg-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="card-title">Degraded Volumes</h6>
-                            <h4 class="mb-0">{fmt.Sprintf("%d", data.VolumesWithMissingShards)}</h4>
-                            <small>Incomplete/Critical</small>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bi bi-exclamation-triangle icon-2x"></i>
-                        </div>
+                    <div class="tb-stat-value"><span class="num">{fmt.Sprintf("%d", data.VolumesWithMissingShards)}</span></div>
+                    <div class="tb-stat-text">
+                        if data.VolumesWithMissingShards > 0 {
+                            <span class="status-dot is-warn me-1"></span>Incomplete/Critical
+                        } else {
+                            <span class="status-dot is-ok me-1"></span>No volumes missing shards
+                        }
                     </div>
                 </div>
             </div>

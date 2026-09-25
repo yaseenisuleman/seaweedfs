@@ -7,11 +7,10 @@ import (
 )
 
 templ CollectionDetails(data dash.CollectionDetailsData) {
-	<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+	<div class="tb-page-header">
 		<div>
-			<h1 class="h2">
-				<i class="bi bi-layers me-2"></i>Collection Details: {data.CollectionName}
-			</h1>
+			<div class="tb-pretitle">Storage</div>
+			<h2 class="tb-page-title"><i class="bi bi-layers me-2 text-secondary"></i>Collection Details: {data.CollectionName}</h2>
 			<nav aria-label="breadcrumb">
 				<ol class="breadcrumb">
 					<li class="breadcrumb-item"><a href={ dash.PUrl(ctx, "/admin") } class="text-decoration-none">Dashboard</a></li>
@@ -20,81 +19,59 @@ templ CollectionDetails(data dash.CollectionDetailsData) {
 				</ol>
 			</nav>
 		</div>
-		<div class="btn-toolbar mb-2 mb-md-0">
-			<div class="btn-group me-2">
-				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="history.back()">
-					<i class="bi bi-arrow-left me-1"></i>Back
-				</button>
-				<button type="button" class="btn btn-sm btn-outline-primary" onclick="window.location.reload()">
-					<i class="bi bi-arrow-clockwise me-1"></i>Refresh
-				</button>
-			</div>
+		<div class="tb-page-actions">
+			<button type="button" class="btn tb-btn" onclick="history.back()">
+				<i class="bi bi-arrow-left me-1"></i>Back
+			</button>
+			<button type="button" class="btn tb-btn" onclick="window.location.reload()">
+				<i class="bi bi-arrow-clockwise me-1"></i>Refresh
+			</button>
 		</div>
 	</div>
 
 	<!-- Collection Summary -->
-	<div class="row mb-4">
-		<div class="col-md-3">
-			<div class="card text-bg-primary">
+	<div class="row row-deck g-3 mb-3">
+		<div class="col-xl-3 col-sm-6">
+			<div class="card tb-stat h-100">
 				<div class="card-body">
 					<div class="d-flex justify-content-between">
-						<div>
-							<h6 class="card-title">Regular Volumes</h6>
-							<h4 class="mb-0">{fmt.Sprintf("%d", data.TotalVolumes)}</h4>
-							<small>Traditional volumes</small>
-						</div>
-						<div class="align-self-center">
-							<i class="bi bi-database icon-2x"></i>
-						</div>
+						<div class="subheader">Regular volumes</div>
 					</div>
+					<div class="tb-stat-value"><span class="num">{fmt.Sprintf("%d", data.TotalVolumes)}</span></div>
+					<div class="tb-stat-text">Traditional volumes</div>
 				</div>
 			</div>
 		</div>
-		<div class="col-md-3">
-			<div class="card text-bg-info">
+		<div class="col-xl-3 col-sm-6">
+			<div class="card tb-stat h-100">
 				<div class="card-body">
 					<div class="d-flex justify-content-between">
-						<div>
-							<h6 class="card-title">EC Volumes</h6>
-							<h4 class="mb-0">{fmt.Sprintf("%d", data.TotalEcVolumes)}</h4>
-							<small>Erasure coded volumes</small>
-						</div>
-						<div class="align-self-center">
-							<i class="bi bi-grid icon-2x"></i>
-						</div>
+						<div class="subheader">EC volumes</div>
 					</div>
+					<div class="tb-stat-value"><span class="num">{fmt.Sprintf("%d", data.TotalEcVolumes)}</span></div>
+					<div class="tb-stat-text">Erasure coded volumes</div>
 				</div>
 			</div>
 		</div>
-		<div class="col-md-3">
-			<div class="card text-bg-success">
+		<div class="col-xl-3 col-sm-6">
+			<div class="card tb-stat h-100">
 				<div class="card-body">
 					<div class="d-flex justify-content-between">
-						<div>
-							<h6 class="card-title">Total Chunks</h6>
-							<h4 class="mb-0">{fmt.Sprintf("%d", data.TotalChunks)}</h4>
-							<small>A file is split into one or more chunks</small>
-						</div>
-						<div class="align-self-center">
-							<i class="bi bi-boxes icon-2x"></i>
-						</div>
+						<div class="subheader">Total chunks</div>
 					</div>
+					<div class="tb-stat-value"><span class="num">{fmt.Sprintf("%d", data.TotalChunks)}</span></div>
+					<div class="tb-stat-text">A file is split into one or more chunks</div>
 				</div>
 			</div>
 		</div>
-		<div class="col-md-3">
-			<div class="card text-bg-warning">
+		<div class="col-xl-3 col-sm-6">
+			<div class="card tb-stat h-100">
 				<div class="card-body">
 					<div class="d-flex justify-content-between">
-						<div>
-							<h6 class="card-title">Total Size (Logical)</h6>
-							<h4 class="mb-0">{util.BytesToHumanReadable(uint64(data.TotalSize))}</h4>
-							<small>Data stored (regular volumes only)</small>
-						</div>
-						<div class="align-self-center">
-							<i class="bi bi-device-hdd icon-2x"></i>
-						</div>
+						<div class="subheader">Total size (logical)</div>
 					</div>
+					<div class="tb-stat-value"><span class="num">{util.BytesToHumanReadable(uint64(data.TotalSize))}</span></div>
+					<div class="tb-stat-text">Data stored (regular volumes only)</div>
 				</div>
 			</div>
 		</div>
@@ -108,8 +85,11 @@ templ CollectionDetails(data dash.CollectionDetailsData) {
 		EC volumes show shard counts instead of size - physical storage for EC volumes is approximately 1.4x the original data due to erasure coding redundancy.
 	</div>
 
-	<!-- Pagination Info -->
-	<div class="d-flex justify-content-between align-items-center mb-3">
+	<!-- Volumes Card -->
+	<div class="card mb-4">
+	<div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+		<h5 class="mb-0"><i class="bi bi-database me-2"></i>Volumes</h5>
+		<!-- Pagination Info -->
 		<div class="d-flex align-items-center">
 			<span class="me-3">
 				Showing {fmt.Sprintf("%d", (data.Page-1)*data.PageSize + 1)} to {fmt.Sprintf("%d", func() int {
@@ -136,6 +116,7 @@ templ CollectionDetails(data dash.CollectionDetailsData) {
 	</div>
 
 	<!-- Volumes Table -->
+	<div class="card-body">
 	<div class="table-responsive">
 		<table class="table table-striped table-hover" id="volumesTable">
 			<thead>
@@ -266,6 +247,8 @@ templ CollectionDetails(data dash.CollectionDetailsData) {
 				}
 			</tbody>
 		</table>
+	</div>
+	</div>
 	</div>
 
 	<!-- Pagination -->

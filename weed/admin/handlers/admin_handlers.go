@@ -309,7 +309,7 @@ func (h *AdminHandlers) ShowDashboard(w http.ResponseWriter, r *http.Request) {
 
 	// Render HTML template
 	w.Header().Set("Content-Type", "text/html")
-	adminComponent := app.Admin(adminData)
+	adminComponent := app.AdminOps(adminData)
 	viewCtx := layout.NewViewContext(r, username, dash.CSRFTokenFromContext(r.Context()))
 	layoutComponent := layout.Layout(viewCtx, adminComponent)
 	if err := layoutComponent.Render(r.Context(), w); err != nil {

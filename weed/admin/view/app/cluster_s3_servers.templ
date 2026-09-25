@@ -6,38 +6,86 @@ import (
 )
 
 templ ClusterS3Servers(data dash.ClusterS3ServersData) {
-	<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-		<h1 class="h2">
-			<i class="bi bi-cloud me-2"></i>S3 Servers
-		</h1>
-		<div class="btn-toolbar mb-2 mb-md-0">
-			<div class="btn-group me-2">
-				<button type="button" class="btn btn-sm btn-outline-primary" onclick="exportS3Servers()">
-					<i class="bi bi-download me-1"></i>Export
-				</button>
-			</div>
+	{{
+		dcSet := map[string]bool{}
+		verSet := map[string]bool{}
+		for _, it := range data.S3Servers {
+			if it.DataCenter != "" {
+				dcSet[it.DataCenter] = true
+			}
+			if it.Version != "" {
+				verSet[it.Version] = true
+			}
+		}
+	}}
+	<div class="tb-page-header">
+		<div>
+			<div class="tb-pretitle">Cluster</div>
+			<h2 class="tb-page-title"><i class="bi bi-cloud me-2 text-secondary"></i>S3 Servers</h2>
+		</div>
+		<div class="tb-page-actions">
+			<button type="button" class="btn tb-btn" onclick="exportS3Servers()">
+				<i class="bi bi-download me-1"></i>Export
+			</button>
 		</div>
 	</div>
 
-	<div id="s3-servers-content">
+	<div id="s3-servers-content" class="ops">
 		<!-- Summary Cards -->
-		<div class="row mb-4">
-			<div class="col-xl-12 col-md-12 mb-4">
-				<div class="card border-left-primary shadow h-100 py-2">
+		<div class="row row-deck g-3 mb-3">
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-									Total S3 Servers
-								</div>
-								<div class="h5 mb-0 font-weight-bold text-gray-800">
-									{ fmt.Sprintf("%d", data.TotalS3Servers) }
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-cloud icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Total S3 servers</div>
 						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalS3Servers) }</span></div>
+						<div class="tb-stat-text">
+							if data.TotalS3Servers > 0 {
+								<span class="status-dot is-ok me-1"></span>Serving S3 requests
+							} else {
+								<span class="status-dot me-1"></span>No S3 gateways registered
+							}
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Data centers</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", len(dcSet)) }</span></div>
+						<div class="tb-stat-text">Locations reported by gateways</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Versions</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", len(verSet)) }</span></div>
+						<div class="tb-stat-text">
+							if len(verSet) > 1 {
+								<span class="status-dot is-warn me-1"></span>Mixed versions running
+							} else {
+								Distinct gateway versions
+							}
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Last updated</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{ data.LastUpdated.Format("15:04:05") }</span></div>
+						<div class="tb-stat-text">{ data.LastUpdated.Format("2006-01-02") }</div>
 					</div>
 				</div>
 			</div>

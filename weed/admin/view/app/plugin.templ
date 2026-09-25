@@ -14,19 +14,16 @@ templ Plugin(page string, initialJob string, lane string) {
         laneDescription := pluginLaneDescription(currentLane)
     }}
     <div class="container-fluid" id="plugin-page" data-plugin-page={ currentPage } data-plugin-job={ initialJob } data-plugin-lane={ currentLane }>
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <div>
-                        <h2 class="mb-0"><i class="bi bi-plug me-2"></i>{ laneTitle }</h2>
-                        <p class="text-muted mb-0">{ laneDescription }</p>
-                    </div>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-outline-secondary" id="plugin-refresh-all-btn">
-                            <i class="bi bi-arrow-repeat me-1"></i>Refresh
-                        </button>
-                    </div>
-                </div>
+        <div class="tb-page-header">
+            <div>
+                <div class="tb-pretitle">Workers</div>
+                <h2 class="tb-page-title"><i class="bi bi-plug me-2 text-secondary"></i>{ laneTitle }</h2>
+                <p class="mb-0 mt-1 text-muted">{ laneDescription }</p>
+            </div>
+            <div class="tb-page-actions">
+                <button type="button" class="btn tb-btn" id="plugin-refresh-all-btn">
+                    <i class="bi bi-arrow-repeat me-1"></i>Refresh
+                </button>
             </div>
         </div>
 
@@ -70,37 +67,48 @@ templ Plugin(page string, initialJob string, lane string) {
         </div>
 
         <div class="plugin-section plugin-section-overview">
-            <div class="row mb-4">
-                <div class="col-md-3 mb-3">
-                    <div class="card border-info h-100">
-                        <div class="card-body text-center">
-                            <div class="text-uppercase text-muted small mb-1">Workers</div>
-                            <h4 class="mb-0" id="plugin-status-workers">0</h4>
+            <div class="row row-deck g-3 mb-3">
+                <div class="col-xl-3 col-sm-6">
+                    <div class="card tb-stat h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div class="subheader">Workers</div>
+                            </div>
+                            <div class="tb-stat-value"><span class="num" id="plugin-status-workers">0</span></div>
+                            <div class="tb-stat-text">Connected to this lane</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card border-warning h-100">
-                        <div class="card-body text-center">
-                            <div class="text-uppercase text-muted small mb-1">Active Jobs</div>
-                            <h4 class="mb-0" id="plugin-status-active-jobs">0</h4>
+                <div class="col-xl-3 col-sm-6">
+                    <div class="card tb-stat h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div class="subheader">Active jobs</div>
+                            </div>
+                            <div class="tb-stat-value"><span class="num" id="plugin-status-active-jobs">0</span></div>
+                            <div class="tb-stat-text">Pending, assigned or running</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card border-success h-100">
-                        <div class="card-body text-center">
-                            <div class="text-uppercase text-muted small mb-1">Activities (recent)</div>
-                            <h4 class="mb-0" id="plugin-status-activities">0</h4>
+                <div class="col-xl-3 col-sm-6">
+                    <div class="card tb-stat h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div class="subheader">Activities (recent)</div>
+                            </div>
+                            <div class="tb-stat-value"><span class="num" id="plugin-status-activities">0</span></div>
+                            <div class="tb-stat-text">Recent job events</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card border-secondary h-100">
-                        <div class="card-body text-center">
-                            <div class="text-uppercase text-muted small mb-1">Next Run</div>
-                            <h4 class="mb-0 plugin-scheduler-next-run">-</h4>
-                            <div class="text-muted small plugin-scheduler-next-run-meta"></div>
+                <div class="col-xl-3 col-sm-6">
+                    <div class="card tb-stat h-100 tb-stat-next-run">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div class="subheader">Next run</div>
+                            </div>
+                            <div class="tb-stat-value"><span class="num plugin-scheduler-next-run">-</span></div>
+                            <div class="tb-stat-text plugin-scheduler-next-run-meta"></div>
                         </div>
                     </div>
                 </div>

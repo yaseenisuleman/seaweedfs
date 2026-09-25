@@ -6,16 +6,35 @@ import (
 )
 
 templ ObjectStoreUsers(data dash.ObjectStoreUsersData) {
+    {{
+        withKeys, admins, withPolicies, static := 0, 0, 0, 0
+        for _, usr := range data.Users {
+            if usr.AccessKey != "" {
+                withKeys++
+            }
+            for _, perm := range usr.Permissions {
+                if perm == "Admin" {
+                    admins++
+                    break
+                }
+            }
+            if len(usr.PolicyNames) > 0 {
+                withPolicies++
+            }
+            if usr.IsStatic {
+                static++
+            }
+        }
+    }}
     <div class="container-fluid">
         <!-- Page Header -->
-        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div class="tb-page-header">
             <div>
-                <h1 class="h3 mb-0 text-gray-800">
-                    <i class="bi bi-people me-2"></i>Object Store Users
-                </h1>
-                <p class="mb-0 text-muted">Manage S3 API users and their access credentials</p>
+                <div class="tb-pretitle">Object Store</div>
+                <h2 class="tb-page-title"><i class="bi bi-people me-2 text-secondary"></i>Users</h2>
+                <p class="mb-0 mt-1 text-muted">Manage S3 API users and their access credentials</p>
             </div>
-            <div class="d-flex gap-2">
+            <div class="tb-page-actions">
                 <button type="button" class="btn btn-primary"
                         data-bs-toggle="modal"
                         data-bs-target="#createUserModal">
@@ -25,63 +44,48 @@ templ ObjectStoreUsers(data dash.ObjectStoreUsersData) {
         </div>
 
         <!-- Summary Cards -->
-        <div class="row mb-4">
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-primary shadow h-100 py-2">
+        <div class="row row-deck g-3 mb-3">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Total Users
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {fmt.Sprintf("%d", data.TotalUsers)}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-people icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Total users</div>
                         </div>
+                        <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalUsers) }</span></div>
+                        <div class="tb-stat-text">{ fmt.Sprintf("%d from the static config", static) }</div>
                     </div>
                 </div>
             </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-success shadow h-100 py-2">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                    Total Users
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {fmt.Sprintf("%d", len(data.Users))}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-person-check icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Access keys</div>
                         </div>
+                        <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", withKeys) }</span></div>
+                        <div class="tb-stat-text">{ fmt.Sprintf("%d users without a key", len(data.Users)-withKeys) }</div>
                     </div>
                 </div>
             </div>
-
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-info shadow h-100 py-2">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                    Last Updated
-                                </div>
-                                <div class="h6 mb-0 font-weight-bold text-gray-800">
-                                    {data.LastUpdated.Format("15:04")}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-clock icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Admins</div>
                         </div>
+                        <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", admins) }</span></div>
+                        <div class="tb-stat-text">Full access to all buckets</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Last updated</div>
+                        </div>
+                        <div class="tb-stat-value"><span class="num">{ data.LastUpdated.Format("15:04") }</span></div>
+                        <div class="tb-stat-text">{ fmt.Sprintf("%d with attached policies", withPolicies) }</div>
                     </div>
                 </div>
             </div>

@@ -9,9 +9,11 @@ import (
 )
 
 templ IcebergTableData(data dash.IcebergDataPreviewData) {
-	<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-		<h1 class="h2">
-			<nav aria-label="breadcrumb">
+	<div class="tb-page-header">
+		<div>
+			<div class="tb-pretitle">Object Store</div>
+			<h2 class="tb-page-title"><i class="bi bi-table me-2 text-secondary"></i>Table Data</h2>
+			<nav aria-label="breadcrumb" class="mt-1">
 				<ol class="breadcrumb mb-0">
 					<li class="breadcrumb-item">
 						<a href={ dash.PUrl(ctx, "/object-store/s3tables/buckets") }>
@@ -36,13 +38,11 @@ templ IcebergTableData(data dash.IcebergDataPreviewData) {
 					<li class="breadcrumb-item active">Data</li>
 				</ol>
 			</nav>
-		</h1>
-		<div class="btn-toolbar mb-2 mb-md-0">
-			<div class="btn-group me-2">
-				<a class="btn btn-sm btn-outline-secondary" href={ dash.PUrl(ctx, fmt.Sprintf("/object-store/s3tables/buckets/%s/namespaces/%s/tables/%s", url.PathEscape(data.CatalogName), url.PathEscape(data.NamespaceName), url.PathEscape(data.TableName))) }>
-					<i class="bi bi-info-circle me-1"></i>Table Details
-				</a>
-			</div>
+		</div>
+		<div class="tb-page-actions">
+			<a class="btn tb-btn" href={ dash.PUrl(ctx, fmt.Sprintf("/object-store/s3tables/buckets/%s/namespaces/%s/tables/%s", url.PathEscape(data.CatalogName), url.PathEscape(data.NamespaceName), url.PathEscape(data.TableName))) }>
+				<i class="bi bi-info-circle me-1"></i>Table Details
+			</a>
 		</div>
 	</div>
 	if data.PreviewError != "" {
@@ -56,101 +56,102 @@ templ IcebergTableData(data dash.IcebergDataPreviewData) {
 		</div>
 	}
 	if !previewIsWorkerSourced(data) {
-		<div class="row mb-4">
-			<div class="col-xl-4 col-md-6 mb-4">
-				<div class="card border-left-primary shadow h-100 py-2">
+		<div class="row row-deck g-3 mb-3">
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-									Snapshot
-								</div>
-								<div class="h6 mb-0 font-weight-bold text-gray-800">
-									if data.SnapshotID != 0 {
-										{ fmt.Sprintf("%d", data.SnapshotID) }
-										if data.SnapshotID == data.CurrentSnapshotID {
-											<span class="badge bg-success ms-1">current</span>
-										}
-									} else {
-										-
-									}
-								</div>
-								if !data.SnapshotTime.IsZero() {
-									<div class="small text-muted">{ data.SnapshotTime.Format("2006-01-02 15:04:05") }</div>
-								}
-							</div>
-							<div class="col-auto">
-								if len(data.Snapshots) > 1 {
-									<div class="dropdown">
-										<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-											Switch
-										</button>
-										<ul class="dropdown-menu dropdown-menu-end">
-											for i, snapshot := range data.Snapshots {
-												if i < 25 {
-													<li>
-														<a class="dropdown-item small" href={ dash.PUrl(ctx, icebergTableDataURL(data.CatalogName, data.NamespaceName, data.TableName, snapshot.SnapshotID, data.RowLimit, "")) }>
-															{ fmt.Sprintf("%d", snapshot.SnapshotID) }
-															if !snapshot.Timestamp.IsZero() {
-																<span class="text-muted ms-1">{ snapshot.Timestamp.Format("2006-01-02 15:04") }</span>
-															}
-														</a>
-													</li>
-												}
-											}
-											if len(data.Snapshots) > 25 {
-												<li><hr class="dropdown-divider"/></li>
+						<div class="d-flex justify-content-between align-items-start">
+							<div class="subheader">Snapshot</div>
+							if len(data.Snapshots) > 1 {
+								<div class="dropdown">
+									<button class="btn btn-sm tb-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+										Switch
+									</button>
+									<ul class="dropdown-menu dropdown-menu-end">
+										for i, snapshot := range data.Snapshots {
+											if i < 25 {
 												<li>
-													<a class="dropdown-item small text-muted" href={ dash.PUrl(ctx, fmt.Sprintf("/object-store/s3tables/buckets/%s/namespaces/%s/tables/%s", url.PathEscape(data.CatalogName), url.PathEscape(data.NamespaceName), url.PathEscape(data.TableName))) }>
-														{ fmt.Sprintf("%d more in snapshot history…", len(data.Snapshots)-25) }
+													<a class="dropdown-item small" href={ dash.PUrl(ctx, icebergTableDataURL(data.CatalogName, data.NamespaceName, data.TableName, snapshot.SnapshotID, data.RowLimit, "")) }>
+														{ fmt.Sprintf("%d", snapshot.SnapshotID) }
+														if !snapshot.Timestamp.IsZero() {
+															<span class="text-muted ms-1">{ snapshot.Timestamp.Format("2006-01-02 15:04") }</span>
+														}
 													</a>
 												</li>
 											}
-										</ul>
-									</div>
-								} else {
-									<i class="bi bi-clock-history icon-2x text-gray-300"></i>
+										}
+										if len(data.Snapshots) > 25 {
+											<li><hr class="dropdown-divider"/></li>
+											<li>
+												<a class="dropdown-item small text-muted" href={ dash.PUrl(ctx, fmt.Sprintf("/object-store/s3tables/buckets/%s/namespaces/%s/tables/%s", url.PathEscape(data.CatalogName), url.PathEscape(data.NamespaceName), url.PathEscape(data.TableName))) }>
+													{ fmt.Sprintf("%d more in snapshot history…", len(data.Snapshots)-25) }
+												</a>
+											</li>
+										}
+									</ul>
+								</div>
+							}
+						</div>
+						<div class="tb-stat-value text-truncate"><span class="num">
+							if data.SnapshotID != 0 {
+								{ fmt.Sprintf("%d", data.SnapshotID) }
+							} else {
+								-
+							}
+						</span></div>
+						<div class="tb-stat-text">
+							if data.SnapshotID != 0 && data.SnapshotID == data.CurrentSnapshotID {
+								<span class="status-dot is-ok me-1"></span>Current
+								if !data.SnapshotTime.IsZero() {
+									{ " · " + data.SnapshotTime.Format("2006-01-02 15:04:05") }
 								}
-							</div>
+							} else if !data.SnapshotTime.IsZero() {
+								{ data.SnapshotTime.Format("2006-01-02 15:04:05") }
+							} else if data.SnapshotID != 0 {
+								Snapshot time not recorded
+							} else {
+								No snapshot selected
+							}
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="col-xl-4 col-md-6 mb-4">
-				<div class="card border-left-success shadow h-100 py-2">
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-									Data Files
-								</div>
-								<div class="h5 mb-0 font-weight-bold text-gray-800">
-									{ formatNumber(int64(data.TotalDataFiles)) }
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-copy icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Data files</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{ formatNumber(int64(data.TotalDataFiles)) }</span></div>
+						<div class="tb-stat-text">{ fmt.Sprintf("%d read for this preview", data.ScannedFiles) }</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
+					<div class="card-body">
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Total records</div>
+						</div>
+						<div class="tb-stat-value"><span class="num">{ formatNumber(data.TotalRecords) }</span></div>
+						<div class="tb-stat-text">
+							if data.HasDeletes {
+								<span class="status-dot is-warn me-1"></span>Before delete files are applied
+							} else {
+								Across data files in this snapshot
+							}
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="col-xl-4 col-md-6 mb-4">
-				<div class="card border-left-info shadow h-100 py-2">
+			<div class="col-xl-3 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-									Total Records
-								</div>
-								<div class="h5 mb-0 font-weight-bold text-gray-800">
-									{ formatNumber(data.TotalRecords) }
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-list-ol icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Sample rows</div>
 						</div>
+						<div class="tb-stat-value"><span class="num">{ formatNumber(int64(len(data.Rows))) }</span></div>
+						<div class="tb-stat-text">{ fmt.Sprintf("Row limit %d", data.RowLimit) }</div>
 					</div>
 				</div>
 			</div>

@@ -9,21 +9,18 @@ import (
 )
 
 templ IcebergCatalog(data dash.IcebergCatalogData) {
-	<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-		<h1 class="h2">
-			<i class="bi bi-snow me-2"></i>Iceberg Catalog
-		</h1>
-		<div class="btn-toolbar mb-2 mb-md-0">
-			<div class="btn-group me-2">
-				<a href={ dash.PUrl(ctx, "/object-store/s3tables/buckets") } class="btn btn-sm btn-primary">
-					<i class="bi bi-plus me-1"></i>Create Table Bucket
-				</a>
-			</div>
-			<div class="btn-group me-2">
-				<a id="iceberg-rest-link" href={ templ.SafeURL(fmt.Sprintf("//localhost:%d/v1/config", data.IcebergPort)) } target="_blank" class="btn btn-sm btn-outline-secondary">
-					<i class="bi bi-box-arrow-up-right me-1"></i>REST API
-				</a>
-			</div>
+	<div class="tb-page-header">
+		<div>
+			<div class="tb-pretitle">Object Store</div>
+			<h2 class="tb-page-title"><i class="bi bi-snow me-2 text-secondary"></i>Iceberg Catalog</h2>
+		</div>
+		<div class="tb-page-actions">
+			<a href={ dash.PUrl(ctx, "/object-store/s3tables/buckets") } class="btn btn-primary">
+				<i class="bi bi-plus me-1"></i>Create Table Bucket
+			</a>
+			<a id="iceberg-rest-link" href={ templ.SafeURL(fmt.Sprintf("//localhost:%d/v1/config", data.IcebergPort)) } target="_blank" class="btn tb-btn">
+				<i class="bi bi-box-arrow-up-right me-1"></i>REST API
+			</a>
 		</div>
 	</div>
 	<div id="iceberg-catalog-content">
@@ -57,65 +54,43 @@ templ IcebergCatalog(data dash.IcebergCatalogData) {
 		</div>
 
 		<!-- Stats Cards -->
-		<div class="row mb-4">
-			<div class="col-xl-4 col-md-6 mb-4">
-				<div class="card border-left-primary shadow h-100 py-2">
+		<div class="row row-deck g-3 mb-3">
+			<div class="col-xl-4 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-									Catalogs (Table Buckets)
-								</div>
-								<div class="h5 mb-0 font-weight-bold text-gray-800">
-									{ fmt.Sprintf("%d", data.TotalCatalogs) }
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-database icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Catalogs</div>
 						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalCatalogs) }</span></div>
+						<div class="tb-stat-text">Each table bucket is an Iceberg catalog</div>
 					</div>
 				</div>
 			</div>
-			<div class="col-xl-4 col-md-6 mb-4">
-				<div class="card border-left-success shadow h-100 py-2">
+			<div class="col-xl-4 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-									REST Port
-								</div>
-								<div class="h5 mb-0 font-weight-bold text-gray-800">
-									{ fmt.Sprintf("%d", data.IcebergPort) }
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-plug icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">REST port</div>
 						</div>
+						<div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.IcebergPort) }</span></div>
+						<div class="tb-stat-text">Iceberg REST catalog endpoint</div>
 					</div>
 				</div>
 			</div>
-			<div class="col-xl-4 col-md-6 mb-4">
-				<div class="card border-left-info shadow h-100 py-2">
+			<div class="col-xl-4 col-sm-6">
+				<div class="card tb-stat h-100">
 					<div class="card-body">
-						<div class="row no-gutters align-items-center">
-							<div class="col mr-2">
-								<div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-									Last Updated
-								</div>
-								<div class="h6 mb-0 font-weight-bold text-gray-800">
-									if data.LastUpdated.IsZero() {
-										<span class="text-muted">-</span>
-									} else {
-										{ data.LastUpdated.Format("2006-01-02 15:04") }
-									}
-								</div>
-							</div>
-							<div class="col-auto">
-								<i class="bi bi-clock icon-2x text-gray-300"></i>
-							</div>
+						<div class="d-flex justify-content-between">
+							<div class="subheader">Last updated</div>
 						</div>
+						<div class="tb-stat-value"><span class="num">
+							if data.LastUpdated.IsZero() {
+								-
+							} else {
+								{ data.LastUpdated.Format("2006-01-02 15:04") }
+							}
+						</span></div>
+						<div class="tb-stat-text">When the catalog list was loaded</div>
 					</div>
 				</div>
 			</div>

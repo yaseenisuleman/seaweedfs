@@ -1,0 +1,793 @@
+package app
+
+import (
+    "fmt"
+    "sort"
+    "github.com/seaweedfs/seaweedfs/weed/admin/dash"
+)
+
+// AdminOps is the operations dashboard, laid out after the Tabler admin
+// template: status first, capacity as the headline, topology at a glance and
+// dense tables. It shows the same data as Admin.
+templ AdminOps(data dash.AdminData) {
+{{
+    var localUsed, localCap int64
+    for _, t := range data.TierStats {
+        if !t.IsRemote {
+            localUsed += t.DiskUsed
+            localCap += t.DiskCapacity
+        }
+    }
+    usedPct := 0
+    if localCap > 0 {
+        usedPct = int(localUsed * 100 / localCap)
+    }
+    var freeBytes int64
+    if localCap > localUsed {
+        freeBytes = localCap - localUsed
+    }
+    slotsUsed, slotsMax := 0, 0
+    for _, vs := range data.VolumeServers {
+        slotsUsed += vs.Volumes
+        slotsMax += vs.MaxVolumes
+    }
+    slotPct := calculatePercent(slotsUsed, slotsMax)
+
+    leader := ""
+    for _, m := range data.MasterNodes {
+        if m.IsLeader {
+            leader = m.Address
+        }
+    }
+
+    level := func(pct int) string {
+        if pct >= 90 {
+            return "crit"
+        }
+        if pct >= 75 {
+            return "warn"
+        }
+        return "ok"
+    }
+    diskPct := func(vs dash.VolumeServer) int {
+        if vs.DiskCapacity <= 0 {
+            return 0
+        }
+        p := int(vs.DiskUsage * 100 / vs.DiskCapacity)
+        if p > 100 {
+            p = 100
+        }
+        return p
+    }
+    serverLevel := func(vs dash.VolumeServer) string {
+        l := level(diskPct(vs))
+        if l == "ok" && vs.MaxVolumes > 0 && vs.Volumes >= vs.MaxVolumes {
+            l = "warn"
+        }
+        return l
+    }
+    serverStatus := func(vs dash.VolumeServer) string {
+        switch {
+        case diskPct(vs) >= 90:
+            return "Disk full"
+        case diskPct(vs) >= 75:
+            return "Disk high"
+        case vs.MaxVolumes > 0 && vs.Volumes >= vs.MaxVolumes:
+            return "No free slots"
+        default:
+            return "Healthy"
+        }
+    }
+
+    // Problems, most severe first.
+    type alert struct {
+        Level string
+        Text  string
+    }
+    alerts := []alert{}
+    if len(data.MasterNodes) == 0 {
+        alerts = append(alerts, alert{"crit", "No master servers reported"})
+    } else if leader == "" {
+        alerts = append(alerts, alert{"crit", "No master leader elected"})
+    }
+    if len(data.VolumeServers) == 0 {
+        alerts = append(alerts, alert{"crit", "No volume servers registered"})
+    }
+    if localCap > 0 && usedPct >= 90 {
+        alerts = append(alerts, alert{"crit", fmt.Sprintf("Cluster disk %d%% full", usedPct)})
+    } else if localCap > 0 && usedPct >= 75 {
+        alerts = append(alerts, alert{"warn", fmt.Sprintf("Cluster disk %d%% used", usedPct)})
+    }
+    if slotsMax > 0 && slotPct >= 90 {
+        alerts = append(alerts, alert{"warn", fmt.Sprintf("Volume slots %d%% used (%d of %d)", slotPct, slotsUsed, slotsMax)})
+    }
+    for _, vs := range data.VolumeServers {
+        p := diskPct(vs)
+        if p >= 90 {
+            alerts = append(alerts, alert{"crit", fmt.Sprintf("%s disk %d%% full", vs.GetDisplayAddress(), p)})
+        } else if p >= 75 {
+            alerts = append(alerts, alert{"warn", fmt.Sprintf("%s disk %d%% used", vs.GetDisplayAddress(), p)})
+        }
+        if vs.MaxVolumes > 0 && vs.Volumes >= vs.MaxVolumes {
+            alerts = append(alerts, alert{"warn", fmt.Sprintf("%s has no free volume slots", vs.GetDisplayAddress())})
+        }
+    }
+    if len(data.FilerNodes) == 0 {
+        alerts = append(alerts, alert{"warn", "No filers registered"})
+    }
+    sort.SliceStable(alerts, func(i, j int) bool { return alerts[i].Level == "crit" && alerts[j].Level != "crit" })
+    critCount := 0
+    for _, a := range alerts {
+        if a.Level == "crit" {
+            critCount++
+        }
+    }
+
+    // Segments of the "Using storage" bar: disk used per local tier, then free.
+    type storageSeg struct {
+        Label string
+        Bytes int64
+        Pct   int
+    }
+    storageSegs := []storageSeg{}
+    if localCap > 0 {
+        for _, t := range data.TierStats {
+            if !t.IsRemote {
+                storageSegs = append(storageSegs, storageSeg{t.Name, t.DiskUsed, int(t.DiskUsed * 100 / localCap)})
+            }
+        }
+    }
+
+    // Volume servers grouped by data center, then rack.
+    type rackGroup struct {
+        Name    string
+        Servers []dash.VolumeServer
+    }
+    type dcGroup struct {
+        Name  string
+        Racks []*rackGroup
+    }
+    dcs := []*dcGroup{}
+    dcByName := map[string]*dcGroup{}
+    rackByKey := map[string]*rackGroup{}
+    for _, vs := range data.VolumeServers {
+        dcName := vs.DataCenter
+        if dcName == "" {
+            dcName = "default"
+        }
+        rackName := vs.Rack
+        if rackName == "" {
+            rackName = "default"
+        }
+        dc, ok := dcByName[dcName]
+        if !ok {
+            dc = &dcGroup{Name: dcName}
+            dcByName[dcName] = dc
+            dcs = append(dcs, dc)
+        }
+        key := dcName + "/" + rackName
+        rack, ok := rackByKey[key]
+        if !ok {
+            rack = &rackGroup{Name: rackName}
+            rackByKey[key] = rack
+            dc.Racks = append(dc.Racks, rack)
+        }
+        rack.Servers = append(rack.Servers, vs)
+    }
+    sort.Slice(dcs, func(i, j int) bool { return dcs[i].Name < dcs[j].Name })
+    for _, dc := range dcs {
+        sort.Slice(dc.Racks, func(i, j int) bool { return dc.Racks[i].Name < dc.Racks[j].Name })
+        for _, rack := range dc.Racks {
+            sort.Slice(rack.Servers, func(i, j int) bool {
+                return rack.Servers[i].GetDisplayAddress() < rack.Servers[j].GetDisplayAddress()
+            })
+        }
+    }
+
+    plural := func(n int, one, many string) string {
+        if n == 1 {
+            return fmt.Sprintf("%d %s", n, one)
+        }
+        return fmt.Sprintf("%d %s", n, many)
+    }
+    totalNodes := len(data.MasterNodes) + len(data.VolumeServers) + len(data.FilerNodes) + len(data.S3Nodes) + len(data.MessageBrokers)
+    // Gauge: a 270° arc; pathLength 100 means the arc spans 75 units.
+    gaugeFill := usedPct * 75 / 100
+}}
+    <div id="dashboard-content" class="dashboard ops"
+        hx-get={ string(dash.PUrl(ctx, "/admin")) }
+        hx-trigger="every 30s [document.visibilityState === 'visible']"
+        hx-select="#dashboard-content"
+        hx-swap="outerHTML">
+        @templ.JSONScript("dashboard-series", data.Trends.Series)
+
+        <!-- Page header -->
+        <div class="tb-page-header">
+            <div>
+                <div class="tb-pretitle">
+                    <span class="live-dot" aria-hidden="true"></span>
+                    Cluster · live
+                    <span class="num" id="dashboard-updated">{data.LastUpdated.Format("15:04:05")}</span>
+                </div>
+                <h2 class="tb-page-title">Dashboard</h2>
+            </div>
+            <div class="tb-page-actions">
+                if len(alerts) == 0 {
+                    <span class="tb-health"><span class="status-dot status-dot-animated is-ok"></span>All systems operational</span>
+                }
+                <button type="button" class="btn tb-btn" data-density-toggle title="Toggle compact density" aria-label="Toggle compact density">
+                    <i class="bi bi-arrows-collapse-vertical"></i>
+                </button>
+                <a href={ dash.PUrl(ctx, "/object-store/buckets") } class="btn btn-primary">
+                    <i class="bi bi-box me-2"></i>Object Store Buckets
+                </a>
+            </div>
+        </div>
+
+        <!-- Problems -->
+        if len(alerts) > 0 {
+            <div class={ "tb-alert", templ.KV("is-crit", critCount > 0), templ.KV("is-warn", critCount == 0) } role="alert">
+                <i class="bi bi-exclamation-triangle tb-alert-icon"></i>
+                <div>
+                    <div class="tb-alert-title">{plural(len(alerts), "issue needs", "issues need")} attention</div>
+                    <ul class="tb-alert-list">
+                        for _, a := range alerts {
+                            <li>
+                                <span class={ "status-dot", "is-" + a.Level }></span>
+                                <span class={ "tb-sev", "is-" + a.Level }>
+                                    if a.Level == "crit" {
+                                        Critical
+                                    } else {
+                                        Warning
+                                    }
+                                </span>
+                                {a.Text}
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+
+        <!-- Row 1: welcome, total size, disk gauge -->
+        <div class="row row-deck g-3 mb-3">
+            <div class="col-xl-6">
+                <div class="card tb-welcome">
+                    <div class="card-body">
+                        <div class="tb-welcome-text">
+                            if data.Username != "" {
+                                <h3 class="tb-welcome-title">Welcome back, {data.Username}</h3>
+                            } else {
+                                <h3 class="tb-welcome-title">Welcome back</h3>
+                            }
+                            <p class="tb-welcome-sub">
+                                {plural(totalNodes, "node", "nodes")} across {plural(len(dcs), "data center", "data centers")}.
+                                if len(alerts) == 0 {
+                                    Everything looks healthy.
+                                } else {
+                                    {plural(len(alerts), "issue", "issues")} to look at.
+                                }
+                            </p>
+                            <div class="tb-welcome-stats">
+                                <div>
+                                    <div class="subheader">Disk used</div>
+                                    <div class="tb-mini-value num">{fmt.Sprintf("%d%%", usedPct)}</div>
+                                    <div class={ "tb-mini-bar", "is-" + level(usedPct) }><span style={ fmt.Sprintf("width: %d%%", usedPct) }></span></div>
+                                </div>
+                                <div>
+                                    <div class="subheader">Volume slots</div>
+                                    <div class="tb-mini-value num">{fmt.Sprintf("%d%%", slotPct)}</div>
+                                    <div class={ "tb-mini-bar", "is-" + level(slotPct) }><span style={ fmt.Sprintf("width: %d%%", slotPct) }></span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <svg class="tb-illustration" viewBox="0 0 220 170" aria-hidden="true">
+                            <ellipse cx="110" cy="156" rx="84" ry="7" class="tb-ill-shadow"/>
+                            <!-- rack -->
+                            <rect x="56" y="30" width="108" height="122" rx="8" class="tb-ill-rack"/>
+                            <rect x="66" y="42" width="88" height="22" rx="4" class="tb-ill-unit"/>
+                            <rect x="66" y="70" width="88" height="22" rx="4" class="tb-ill-unit"/>
+                            <rect x="66" y="98" width="88" height="22" rx="4" class="tb-ill-unit"/>
+                            <rect x="66" y="126" width="88" height="16" rx="4" class="tb-ill-unit"/>
+                            <circle cx="140" cy="53" r="3" class="tb-ill-led-ok"/>
+                            <circle cx="140" cy="81" r="3" class="tb-ill-led-ok"/>
+                            <circle cx="140" cy="109" r="3" class="tb-ill-led-warn"/>
+                            <circle cx="140" cy="134" r="3" class="tb-ill-led-ok"/>
+                            <rect x="74" y="50" width="40" height="6" rx="3" class="tb-ill-line"/>
+                            <rect x="74" y="78" width="52" height="6" rx="3" class="tb-ill-line"/>
+                            <rect x="74" y="106" width="32" height="6" rx="3" class="tb-ill-line"/>
+                            <!-- check badge -->
+                            <circle cx="170" cy="36" r="20" class="tb-ill-badge"/>
+                            <path d="M160 36 l7 7 l13 -14" class="tb-ill-check"/>
+                            <!-- confetti -->
+                            <path d="M34 40 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2 z" class="tb-ill-spark"/>
+                            <circle cx="200" cy="90" r="3" class="tb-ill-dot-a"/>
+                            <circle cx="30" cy="110" r="3" class="tb-ill-dot-b"/>
+                            <circle cx="120" cy="12" r="2.5" class="tb-ill-dot-b"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat">
+                    <div class="card-body pb-0">
+                        <div class="subheader">Total size</div>
+                        <div class="tb-stat-value">
+                            <span class="num">{formatBytes(data.TotalSize)}</span>
+                            <span class="kpi-delta" data-delta="disk_used" data-format="bytes"></span>
+                        </div>
+                        <div class="tb-stat-text" title="Chunks stored in volumes. A file is split into one or more chunks, so this is not the number of files.">
+                            {formatNumber(data.TotalChunks)} chunks in {plural(data.TotalVolumes, "volume", "volumes")}
+                        </div>
+                    </div>
+                    <div class="chart tb-chart-bleed" data-kind="spark" data-series="disk_used"></div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat">
+                    <div class="card-body">
+                        <div class="subheader">Local disk</div>
+                        <div class="tb-stat-value"><span class="num">{formatBytes(localUsed)}</span></div>
+                        if localCap > 0 {
+                            <div class="tb-gauge">
+                                <svg viewBox="0 0 120 120" aria-hidden="true">
+                                    <circle class="tb-gauge-track" cx="60" cy="60" r="50" pathLength="100" stroke-dasharray="75 100"></circle>
+                                    <circle class={ "tb-gauge-bar", "is-" + level(usedPct) } cx="60" cy="60" r="50" pathLength="100" stroke-dasharray={ fmt.Sprintf("%d 100", gaugeFill) }></circle>
+                                </svg>
+                                <div class="tb-gauge-center">
+                                    <div class="subheader">Used</div>
+                                    <div class="tb-gauge-value num">{fmt.Sprintf("%d%%", usedPct)}</div>
+                                </div>
+                            </div>
+                            <div class="tb-stat-text text-center">{formatBytes(freeBytes)} free of {formatBytes(localCap)}</div>
+                        } else {
+                            <div class="tb-empty">No local storage reported yet</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: stat cards -->
+        <div class="row row-deck g-3 mb-3">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Volumes</div>
+                            <span class="tb-stat-side">{fmt.Sprintf("%d MB limit", data.VolumeSizeLimitMB)}</span>
+                        </div>
+                        <div class="tb-stat-value">
+                            <span class="num">{fmt.Sprintf("%d", data.TotalVolumes)}</span>
+                            <span class="kpi-delta" data-delta="volumes" data-format="count"></span>
+                        </div>
+                        <div class="d-flex justify-content-between tb-stat-text">
+                            <span>Volume slots used</span>
+                            <span class="num">{fmt.Sprintf("%d / %d", slotsUsed, slotsMax)}</span>
+                        </div>
+                        <div class={ "tb-progress", "is-" + level(slotPct) }><span style={ fmt.Sprintf("width: %d%%", slotPct) }></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat">
+                    <div class="card-body pb-0">
+                        <div class="subheader" title="Chunks stored in volumes. A file is split into one or more chunks, so this is not the number of files.">Chunks</div>
+                        <div class="tb-stat-value">
+                            <span class="num">{formatNumber(data.TotalChunks)}</span>
+                            <span class="kpi-delta" data-delta="chunks" data-format="count"></span>
+                        </div>
+                    </div>
+                    <div class="chart tb-chart-bleed tb-chart-sm" data-kind="spark" data-series="chunks"></div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat">
+                    <div class="card-body pb-0">
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">EC shards</div>
+                            <span class="tb-stat-side">{plural(data.TotalEcVolumes, "EC volume", "EC volumes")}</span>
+                        </div>
+                        <div class="tb-stat-value">
+                            <span class="num">{fmt.Sprintf("%d", data.TotalEcShards)}</span>
+                            <span class="kpi-delta" data-delta="ec_shards" data-format="count"></span>
+                        </div>
+                    </div>
+                    <div class="chart tb-chart-bleed tb-chart-sm" data-kind="spark" data-series="ec_shards"></div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Active tasks</div>
+                            <span class="tb-stat-side">Workers { data.Trends.WorkersValue }</span>
+                        </div>
+                        <div class="tb-stat-value">
+                            <span class="num">{ data.Trends.TasksValue }</span>
+                            <span class="kpi-delta" data-delta="tasks" data-format="count"></span>
+                        </div>
+                        <div class="chart tb-chart-bars" data-kind="bars" data-series="tasks"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: service tiles -->
+        <div class="row g-3 mb-3">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-tile">
+                    <span class="tb-tile-icon is-primary"><i class="bi bi-award"></i></span>
+                    <div>
+                        <div class="tb-tile-title">{plural(len(data.MasterNodes), "Master", "Masters")}</div>
+                        <div class="tb-tile-sub">
+                            if leader != "" {
+                                leader <span class="mono">{leader}</span>
+                            } else {
+                                <span class="text-danger">no leader</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-tile">
+                    <span class="tb-tile-icon is-green"><i class="bi bi-folder2-open"></i></span>
+                    <div>
+                        <div class="tb-tile-title">{plural(len(data.FilerNodes), "Filer", "Filers")}</div>
+                        <div class="tb-tile-sub">{plural(len(data.S3Nodes), "S3 gateway", "S3 gateways")}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-tile">
+                    <span class="tb-tile-icon is-dark"><i class="bi bi-chat-dots"></i></span>
+                    <div>
+                        <div class="tb-tile-title">{plural(len(data.MessageBrokers), "Message broker", "Message brokers")}</div>
+                        <div class="tb-tile-sub">message queue</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <a class="card tb-tile tb-tile-link" href={ dash.PUrl(ctx, "/cluster/mount-clients") }>
+                    <span class="tb-tile-icon is-azure"><i class="bi bi-plug"></i></span>
+                    <div>
+                        <div class="tb-tile-title">{plural(data.TotalMountClients, "Mount client", "Mount clients")}</div>
+                        <div class="tb-tile-sub">Connected FUSE/VFS mount clients</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Row 4: storage history, topology -->
+        <div class="row row-deck g-3 mb-3">
+            <div class="col-xl-6">
+                <div class="card">
+                    <div class="card-body tb-chart-card">
+                        <div class="tb-card-head">
+                            <h3 class="card-title">Storage history</h3>
+                            <div class="tb-seg chart-switch" role="group" aria-label="Chart series">
+                                <button type="button" class="btn active" data-chart-target="#storage-chart" data-series="disk_used" data-format="bytes">Data stored</button>
+                                <button type="button" class="btn" data-chart-target="#storage-chart" data-series="volumes" data-format="count">Volumes</button>
+                                <button type="button" class="btn" data-chart-target="#storage-chart" data-series="chunks" data-format="count">Chunks</button>
+                            </div>
+                        </div>
+                        <div class="tb-card-meta">
+                            <span>Write rate <strong class="num" data-rate="disk_used">—</strong></span>
+                            <span title="Free space divided by the current write rate">Projected full <strong class="num" data-projection="disk_used" data-free={ fmt.Sprintf("%d", freeBytes) }>—</strong></span>
+                            <span>{ fmt.Sprintf("Sampled every %ds", data.Trends.Series.SampleSeconds) }</span>
+                        </div>
+                        <div id="storage-chart" class="chart tb-chart-main" data-kind="area" data-series="disk_used" data-format="bytes"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="tb-card-head">
+                            <h3 class="card-title">Topology</h3>
+                            <div class="topo-legend">
+                                <span><i class="is-ok"></i>under 75%</span>
+                                <span><i class="is-warn"></i>75–90% / full</span>
+                                <span><i class="is-crit"></i>over 90%</span>
+                            </div>
+                        </div>
+                        <div class="tb-card-meta">
+                            <span>{plural(len(data.VolumeServers), "volume server", "volume servers")} in {plural(len(dcs), "data center", "data centers")}, coloured by disk usage</span>
+                        </div>
+                        if len(dcs) == 0 {
+                            <div class="tb-empty">No volume servers registered</div>
+                        }
+                        for _, dc := range dcs {
+                            <div class="topo-dc">
+                                <div class="topo-dc-name"><i class="bi bi-building"></i>{dc.Name}</div>
+                                <div class="topo-racks">
+                                    for _, rack := range dc.Racks {
+                                        <div class="topo-rack">
+                                            <div class="topo-rack-name">
+                                                <span><i class="bi bi-hdd-rack"></i>{rack.Name}</span>
+                                                <span class="num">{fmt.Sprintf("%d", len(rack.Servers))}</span>
+                                            </div>
+                                            <div class="topo-nodes">
+                                                for _, vs := range rack.Servers {
+                                                    <a class={ "topo-node", "is-" + serverLevel(vs) }
+                                                        href={templ.SafeURL(fmt.Sprintf("//%s/ui/index.html", vs.GetDisplayAddress()))} target="_blank"
+                                                        title={ fmt.Sprintf("%s — %s / %s, %d/%d volumes, %s", vs.GetDisplayAddress(), formatBytes(vs.DiskUsage), formatBytes(vs.DiskCapacity), vs.Volumes, vs.MaxVolumes, serverStatus(vs)) }>
+                                                        <span class="topo-addr mono">{vs.GetDisplayAddress()}</span>
+                                                        <span class={ "tb-progress", "is-" + level(diskPct(vs)) }><span style={ fmt.Sprintf("width: %d%%", diskPct(vs)) }></span></span>
+                                                        <span class="topo-stats num">
+                                                            <span>{fmt.Sprintf("%d%% of disk", diskPct(vs))}</span>
+                                                            <span>{fmt.Sprintf("%d/%d vols", vs.Volumes, vs.MaxVolumes)}</span>
+                                                        </span>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 5: using storage, services -->
+        <div class="row row-deck g-3 mb-3">
+            <div class="col-xl-6">
+                <div class="card">
+                    <div class="card-body">
+                        if localCap > 0 {
+                            <p class="tb-storage-head">Using storage <strong class="num">{formatBytes(localUsed)}</strong> of <span class="num">{formatBytes(localCap)}</span></p>
+                            <div class="tb-storage-bar">
+                                for i, sg := range storageSegs {
+                                    <span class={ fmt.Sprintf("seg-t%d", i%4) } style={ fmt.Sprintf("width: %d%%", sg.Pct) } title={ fmt.Sprintf("%s %s", sg.Label, formatBytes(sg.Bytes)) }></span>
+                                }
+                            </div>
+                            <div class="tb-storage-legend">
+                                for i, sg := range storageSegs {
+                                    <span><i class={ fmt.Sprintf("seg-t%d", i%4) }></i>{sg.Label} <span class="text-secondary num">{formatBytes(sg.Bytes)}</span></span>
+                                }
+                                <span><i class="seg-free"></i>Free <span class="text-secondary num">{formatBytes(freeBytes)}</span></span>
+                                <span>Data stored <span class="text-secondary num">{formatBytes(data.TotalSize)}</span></span>
+                            </div>
+                        } else {
+                            <div class="tb-empty">No local storage reported yet</div>
+                        }
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table tb-table card-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Tier</th>
+                                    <th class="text-end">Volumes</th>
+                                    <th class="text-end">EC shards</th>
+                                    <th class="text-end">Data</th>
+                                    <th class="text-end">Disk used</th>
+                                    <th class="text-end">Capacity</th>
+                                    <th class="text-end">Usage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                for _, tier := range data.TierStats {
+                                    <tr>
+                                        <td>
+                                            <span class="fw-medium">{tier.Name}</span>
+                                            if tier.IsRemote {
+                                                <span class="tb-badge is-azure ms-1">remote</span>
+                                            }
+                                        </td>
+                                        <td class="text-end num">{fmt.Sprintf("%d", tier.VolumeCount)}</td>
+                                        <td class="text-end num">
+                                            if tier.IsRemote {
+                                                <span class="text-secondary">-</span>
+                                            } else {
+                                                {fmt.Sprintf("%d", tier.EcShardCount)}
+                                            }
+                                        </td>
+                                        <td class="text-end num">{formatBytes(tier.DataSize)}</td>
+                                        <td class="text-end num">
+                                            if tier.IsRemote || tier.DiskUsed == 0 {
+                                                <span class="text-secondary">-</span>
+                                            } else {
+                                                {formatBytes(tier.DiskUsed)}
+                                            }
+                                        </td>
+                                        <td class="text-end num">
+                                            if tier.IsRemote {
+                                                <span class="text-secondary">-</span>
+                                            } else {
+                                                {formatBytes(tier.DiskCapacity)}
+                                            }
+                                        </td>
+                                        <td class="text-end num">
+                                            if tier.IsRemote {
+                                                <span class="text-secondary">-</span>
+                                            } else {
+                                                <span class={ "status-dot", "me-1", "is-" + level(tier.UsagePercent()) }></span>{fmt.Sprintf("%d%%", tier.UsagePercent())}
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                if len(data.TierStats) == 0 {
+                                    <tr><td colspan="7" class="tb-empty">No storage tiers found</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Services</h3>
+                        <div class="dropdown no-arrow ms-auto">
+                            <a class="dropdown-toggle dash-kebab" href="#" role="button" data-bs-toggle="dropdown" aria-label="Actions">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a class="dropdown-item" href={ dash.PUrl(ctx, "/filer") }>File Browser</a>
+                                <a class="dropdown-item" href={ dash.PUrl(ctx, "/cluster") }>Topology View</a>
+                                <a class="dropdown-item" href={ dash.PUrl(ctx, "/cluster/s3") }>S3 Servers</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table tb-table card-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Address</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                for _, master := range data.MasterNodes {
+                                    <tr>
+                                        <td><span class="tb-avatar"><i class="bi bi-award"></i></span>Master</td>
+                                        <td><a class="mono" href={templ.SafeURL(fmt.Sprintf("//%s/ui/index.html", master.Address))} target="_blank">{master.Address}</a></td>
+                                        <td class="text-secondary">-</td>
+                                        <td>
+                                            if master.IsLeader {
+                                                <span class="status-dot is-ok me-1"></span>Leader
+                                            } else {
+                                                <span class="status-dot me-1"></span>Follower
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                for _, filer := range data.FilerNodes {
+                                    <tr>
+                                        <td><span class="tb-avatar"><i class="bi bi-folder2-open"></i></span>Filer</td>
+                                        <td><a class="mono" href={templ.SafeURL(fmt.Sprintf("//%s", filer.Address))} target="_blank">{filer.Address}</a></td>
+                                        <td class="text-secondary">
+                                            if filer.DataCenter != "" || filer.Rack != "" {
+                                                {filer.DataCenter}
+                                                if filer.Rack != "" {
+                                                    / {filer.Rack}
+                                                }
+                                            } else {
+                                                -
+                                            }
+                                        </td>
+                                        <td><span class="status-dot is-ok me-1"></span>Seen {filer.LastUpdated.Format("15:04:05")}</td>
+                                    </tr>
+                                }
+                                for _, s3Node := range data.S3Nodes {
+                                    <tr>
+                                        <td><span class="tb-avatar"><i class="bi bi-cloud"></i></span>S3</td>
+                                        <td class="mono">{s3Node.Address}</td>
+                                        <td class="text-secondary">
+                                            if s3Node.DataCenter != "" {
+                                                {s3Node.DataCenter}
+                                            } else {
+                                                -
+                                            }
+                                        </td>
+                                        <td><span class="status-dot is-ok me-1"></span>Seen {s3Node.LastUpdated.Format("15:04:05")}</td>
+                                    </tr>
+                                }
+                                if len(data.MasterNodes)+len(data.FilerNodes)+len(data.S3Nodes) == 0 {
+                                    <tr><td colspan="4" class="tb-empty">No services found</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 6: volume servers -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">Volume servers</h3>
+                <div class="dropdown no-arrow ms-auto">
+                    <a class="dropdown-toggle dash-kebab" href="#" role="button" data-bs-toggle="dropdown" aria-label="Actions">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" href={ dash.PUrl(ctx, "/volumes") }>View Details</a>
+                        <a class="dropdown-item" href={ dash.PUrl(ctx, "/cluster") }>Topology View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="tb-toolbar">
+                <span class="text-secondary">{plural(len(data.VolumeServers), "server", "servers")} · {plural(slotsUsed, "volume", "volumes")}</span>
+                <div class="tb-search">
+                    <span class="text-secondary">Search:</span>
+                    <input type="search" class="form-control form-control-sm" aria-label="Filter volume servers" data-table-filter="#ops-volume-servers"/>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="ops-volume-servers" class="table tb-table card-table mb-0">
+                    <thead>
+                        <tr>
+                            <th data-sort>Server</th>
+                            <th data-sort>Data center</th>
+                            <th data-sort>Rack</th>
+                            <th data-sort class="text-end">Disk</th>
+                            <th data-sort class="text-end">Used / capacity</th>
+                            <th data-sort class="text-end">Volumes</th>
+                            <th data-sort class="text-end">EC shards</th>
+                            <th data-sort>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        for _, vs := range data.VolumeServers {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="tb-avatar"><i class="bi bi-server"></i></span>
+                                        <div>
+                                            <a class="mono" href={templ.SafeURL(fmt.Sprintf("//%s/ui/index.html", vs.GetDisplayAddress()))} target="_blank">{vs.GetDisplayAddress()}</a>
+                                            if vs.ID != "" && vs.ID != vs.GetDisplayAddress() {
+                                                <div class="tb-sub mono">{vs.ID}</div>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{vs.DataCenter}</td>
+                                <td>{vs.Rack}</td>
+                                <td class="text-end" data-sort-value={ fmt.Sprintf("%d", diskPct(vs)) }>
+                                    <div class="tb-cell-meter">
+                                        <span class={ "tb-progress", "is-" + level(diskPct(vs)) }><span style={ fmt.Sprintf("width: %d%%", diskPct(vs)) }></span></span>
+                                        <span class="num">{fmt.Sprintf("%d%%", diskPct(vs))}</span>
+                                    </div>
+                                </td>
+                                <td class="text-end num" data-sort-value={ fmt.Sprintf("%d", vs.DiskUsage) }>
+                                    {formatBytes(vs.DiskUsage)} / {formatBytes(vs.DiskCapacity)}
+                                    if vs.RemoteSize > 0 {
+                                        <div class="tb-sub"><i class="bi bi-cloud me-1"></i>{formatBytes(vs.RemoteSize)} remote</div>
+                                    }
+                                </td>
+                                <td class="text-end num" data-sort-value={ fmt.Sprintf("%d", vs.Volumes) }>{fmt.Sprintf("%d / %d", vs.Volumes, vs.MaxVolumes)}</td>
+                                <td class="text-end num" data-sort-value={ fmt.Sprintf("%d", vs.EcShards) }>
+                                    if vs.EcShards > 0 {
+                                        {fmt.Sprintf("%d", vs.EcShards)}
+                                        if vs.EcVolumes > 0 {
+                                            <span class="tb-sub-inline">({fmt.Sprintf("%d vol", vs.EcVolumes)})</span>
+                                        }
+                                    } else {
+                                        <span class="text-secondary">-</span>
+                                    }
+                                </td>
+                                <td><span class={ "status-dot", "me-1", "is-" + serverLevel(vs) }></span>{serverStatus(vs)}</td>
+                            </tr>
+                        }
+                        if len(data.VolumeServers) == 0 {
+                            <tr><td colspan="8" class="tb-empty">No volume servers found</td></tr>
+                        }
+                        <tr class="filter-empty" hidden><td colspan="8" class="tb-empty">No servers match the search</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer tb-card-footer">
+                Showing <strong>{plural(len(data.VolumeServers), "server", "servers")}</strong> · click a column header to sort
+            </div>
+        </div>
+    </div>
+    <script src={ string(dash.PUrl(ctx, "/static/js/dashboard-charts.js")) }></script>
+}

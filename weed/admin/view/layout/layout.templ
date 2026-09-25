@@ -51,6 +51,18 @@ templ Layout(view ViewContext, content templ.Component) {
 <head>
     <meta charset="UTF-8">
     <title>SeaweedFS Admin</title>
+    <!-- Apply the saved (or system) color theme before first paint -->
+    <script>
+        (function () {
+            var t = null;
+            try { t = localStorage.getItem('sw-theme'); } catch (e) {}
+            if (t !== 'light' && t !== 'dark') {
+                t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.setAttribute('data-bs-theme', t);
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content={ csrfToken }>
     <link rel="icon" href={ string(view.P("/static/favicon.ico")) } type="image/x-icon">
@@ -69,11 +81,12 @@ templ Layout(view ViewContext, content templ.Component) {
 <body>
     <div class="container-fluid p-0">
         <!-- Header -->
-        <header class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <!-- Top bar: small screens only; on desktop the sidebar carries brand, search and user -->
+        <header class="navbar navbar-expand-lg navbar-light bg-white sticky-top app-navbar d-md-none">
             <div class="container-fluid">
-                <a class="navbar-brand fw-bold" href={ view.P("/admin") }>
-                    <i class="bi bi-server me-2"></i>
-                    SeaweedFS Admin
+                <a class="navbar-brand app-brand d-md-none" href={ view.P("/admin") }>
+                    <span class="app-brand-icon"><i class="bi bi-server"></i></span>
+                    SeaweedFS
                 </a>
 
                 <button class="navbar-toggler d-md-none me-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation menu">
@@ -84,12 +97,12 @@ templ Layout(view ViewContext, content templ.Component) {
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav ms-auto align-items-center">
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person me-1"></i>{username}
+                            <a class="nav-link dropdown-toggle app-user" href="#" role="button" data-bs-toggle="dropdown">
+                                <span class="app-user-avatar"><i class="bi bi-person"></i></span>{username}
                             </a>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href={ view.P("/logout") }>
                                     <i class="bi bi-box-arrow-right me-2"></i>Logout
                                 </a></li>
@@ -102,9 +115,20 @@ templ Layout(view ViewContext, content templ.Component) {
 
         <div class="row g-0">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse" id="sidebarMenu">
-                <div class="position-sticky pt-3">
-                    <h6 class="sidebar-heading px-3 mt-4 mb-1 text-muted">
+            <div class="col-md-3 col-lg-2 d-md-block bg-white sidebar collapse" id="sidebarMenu">
+                <a class="sidebar-brand d-none d-md-flex" href={ view.P("/admin") }>
+                    <span class="app-brand-icon"><i class="bi bi-server"></i></span>
+                    SeaweedFS
+                    <small class="sidebar-brand-tag">Admin</small>
+                </a>
+                <div class="app-search">
+                    <i class="bi bi-search"></i>
+                    <input type="search" id="app-search-input" placeholder="Search pages" autocomplete="off" aria-label="Search admin pages"/>
+                    <kbd>Ctrl K</kbd>
+                    <div class="app-search-results" id="app-search-results" hidden></div>
+                </div>
+                <div class="sidebar-nav pt-1">
+                    <h6 class="sidebar-heading px-3 mt-3 mb-1 text-muted">
                         <span>MAIN</span>
                     </h6>
                     <ul class="nav flex-column">
@@ -330,6 +354,25 @@ templ Layout(view ViewContext, content templ.Component) {
                         </li>
                     </ul>
                 </div>
+                <div class="sidebar-footer">
+                    <div class="dropup">
+                        <a class="sidebar-user" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="app-user-avatar">{ strings.ToUpper(string([]rune(username)[:1])) }</span>
+                            <span class="sidebar-user-text">
+                                <span class="sidebar-user-name">{username}</span>
+                                <small>Signed in</small>
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href={ view.P("/logout") }>
+                                <i class="bi bi-box-arrow-right me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </div>
+                    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Sidebar backdrop for mobile -->
@@ -345,7 +388,7 @@ templ Layout(view ViewContext, content templ.Component) {
     </div>
 
     <!-- Footer -->
-    <footer class="footer mt-auto py-3 bg-light">
+    <footer class="footer app-footer mt-auto py-3">
         <div class="container-fluid text-center">
             <small class="text-muted">
                 &copy; {fmt.Sprintf("%d", time.Now().Year())} SeaweedFS Admin v{version.VERSION_NUMBER}
@@ -371,6 +414,29 @@ templ Layout(view ViewContext, content templ.Component) {
     <script src={ string(view.P("/static/js/iam-utils.js")) }></script>
     <script src={ string(view.P("/static/js/s3tables.js")) }></script>
     <script src={ string(view.P("/static/js/policy_editor.js")) }></script>
+    <script src={ string(view.P("/static/js/quick-search.js")) }></script>
+    <script>
+        (function () {
+            var btn = document.getElementById('theme-toggle');
+            if (!btn) {
+                return;
+            }
+            var root = document.documentElement;
+            var sync = function () {
+                var dark = root.getAttribute('data-theme') === 'dark';
+                btn.innerHTML = dark ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon"></i>';
+            };
+            btn.addEventListener('click', function () {
+                var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                root.setAttribute('data-bs-theme', next);
+                try { localStorage.setItem('sw-theme', next); } catch (e) {}
+                sync();
+                window.dispatchEvent(new Event('sw-theme-change'));
+            });
+            sync();
+        })();
+    </script>
 </body>
 </html>
 }

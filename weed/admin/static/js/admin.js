@@ -161,51 +161,10 @@ function setupSubmenuBehavior() {
         });
     });
 
-    // Handle the main cluster toggle
-    const clusterToggle = document.querySelector('[data-bs-target="#clusterSubmenu"]');
-    if (clusterToggle) {
-        clusterToggle.addEventListener('click', function (e) {
-            e.preventDefault();
-
-            const submenu = document.getElementById('clusterSubmenu');
-            const isExpanded = submenu.classList.contains('show');
-
-            if (isExpanded) {
-                // Collapse
-                submenu.classList.remove('show');
-                this.classList.add('collapsed');
-                this.setAttribute('aria-expanded', 'false');
-            } else {
-                // Expand
-                submenu.classList.add('show');
-                this.classList.remove('collapsed');
-                this.setAttribute('aria-expanded', 'true');
-            }
-        });
-    }
-
-    // Handle the main object store toggle
-    const objectStoreToggle = document.querySelector('[data-bs-target="#objectStoreSubmenu"]');
-    if (objectStoreToggle) {
-        objectStoreToggle.addEventListener('click', function (e) {
-            e.preventDefault();
-
-            const submenu = document.getElementById('objectStoreSubmenu');
-            const isExpanded = submenu.classList.contains('show');
-
-            if (isExpanded) {
-                // Collapse
-                submenu.classList.remove('show');
-                this.classList.add('collapsed');
-                this.setAttribute('aria-expanded', 'false');
-            } else {
-                // Expand
-                submenu.classList.add('show');
-                this.classList.remove('collapsed');
-                this.setAttribute('aria-expanded', 'true');
-            }
-        });
-    }
+    // The Cluster toggle is opened and closed by Bootstrap's collapse plugin
+    // (data-bs-toggle="collapse"), like the Storage and Message Queue menus.
+    // A second click handler here used to toggle it as well, so each click
+    // undid the other and the open menu could not be closed.
 
 }
 

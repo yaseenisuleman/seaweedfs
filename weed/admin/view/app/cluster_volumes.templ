@@ -7,11 +7,27 @@ import (
 )
 
 templ ClusterVolumes(data dash.ClusterVolumesData) {
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    {{
+        limitMB := data.VolumeSizeLimit / (1024 * 1024)
+        allocated := int64(data.VolumeSizeLimit) * int64(data.TotalVolumes)
+        fillPct := 0
+        if allocated > 0 {
+            fillPct = int(data.TotalSize * 100 / allocated)
+            if fillPct > 100 {
+                fillPct = 100
+            }
+        }
+        fillLevel := "ok"
+        if fillPct >= 90 {
+            fillLevel = "crit"
+        } else if fillPct >= 75 {
+            fillLevel = "warn"
+        }
+    }}
+    <div class="tb-page-header">
         <div>
-            <h1 class="h2">
-                <i class="bi bi-database me-2"></i>Cluster Volumes
-            </h1>
+            <div class="tb-pretitle">Storage</div>
+            <h2 class="tb-page-title"><i class="bi bi-database me-2 text-secondary"></i>Volumes</h2>
             if data.FilterCollection != "" {
                 <div class="d-flex align-items-center mt-2">
                     <span class="badge bg-info me-2">
@@ -23,202 +39,110 @@ templ ClusterVolumes(data dash.ClusterVolumesData) {
                 </div>
             }
         </div>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group me-2">
-                <select class="form-select form-select-sm me-2" id="pageSizeSelect" onchange="changePageSize()" style="width: auto;">
-                    <option value="50" if data.PageSize == 50 { selected="selected" }>50 per page</option>
-                    <option value="100" if data.PageSize == 100 { selected="selected" }>100 per page</option>
-                    <option value="200" if data.PageSize == 200 { selected="selected" }>200 per page</option>
-                    <option value="500" if data.PageSize == 500 { selected="selected" }>500 per page</option>
-                </select>
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportVolumes()">
-                    <i class="bi bi-download me-1"></i>Export Page
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportVolumeList()" title="Download the full cluster volume list as JSON">
-                    <i class="bi bi-file-earmark-arrow-up me-1"></i>Export All (JSON)
-                </button>
-            </div>
+        <div class="tb-page-actions">
+            <select class="form-select form-select-sm" id="pageSizeSelect" onchange="changePageSize()" style="width: auto;">
+                <option value="50" if data.PageSize == 50 { selected="selected" }>50 per page</option>
+                <option value="100" if data.PageSize == 100 { selected="selected" }>100 per page</option>
+                <option value="200" if data.PageSize == 200 { selected="selected" }>200 per page</option>
+                <option value="500" if data.PageSize == 500 { selected="selected" }>500 per page</option>
+            </select>
+            <button type="button" class="btn tb-btn" onclick="exportVolumes()">
+                <i class="bi bi-download me-1"></i>Export Page
+            </button>
+            <button type="button" class="btn tb-btn" onclick="exportVolumeList()" title="Download the full cluster volume list as JSON">
+                <i class="bi bi-file-earmark-arrow-up me-1"></i>Export All (JSON)
+            </button>
         </div>
     </div>
 
     <div id="volumes-content">
         <!-- Summary Cards -->
-        <div class="row mb-4">
-            <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
-                <div class="card border-left-primary shadow h-100 py-2">
+        <div class="row row-deck g-3 mb-3">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Total Volumes
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {fmt.Sprintf("%d", data.TotalVolumes)}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-database icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Volumes</div>
+                            if data.VolumeSizeLimit > 0 {
+                            <span class="tb-stat-side">{ fmt.Sprintf("%d MB limit", limitMB) }</span>
+                        }
+                        </div>
+                        <div class="tb-stat-value"><span class="num">{ fmt.Sprintf("%d", data.TotalVolumes) }</span></div>
+                        <div class="tb-stat-text">
+                            if data.CollectionCount == 1 {
+                                In collection { data.SingleCollection }
+                            } else {
+                                { fmt.Sprintf("Across %d collections", data.CollectionCount) }
+                            }
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
-                <div class="card border-left-success shadow h-100 py-2">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                    if data.CollectionCount == 1 {
-                                        Collection
-                                    } else {
-                                        Collections
-                                    }
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    if data.CollectionCount == 1 {
-                                        {data.SingleCollection}
-                                    } else {
-                                        {fmt.Sprintf("%d", data.CollectionCount)}
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-layers icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">Total size</div>
+                        </div>
+                        <div class="tb-stat-value"><span class="num">{ formatBytes(data.TotalSize) }</span></div>
+                        <div class="d-flex justify-content-between tb-stat-text">
+                            <span>Allocated space used</span>
+                            <span class="num">{ fmt.Sprintf("%d%%", fillPct) }</span>
+                        </div>
+                        <div class={ "tb-progress", "is-" + fillLevel }><span style={ fmt.Sprintf("width: %d%%", fillPct) }></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">if data.DataCenterCount == 1 {
+                                Data center
+                            } else {
+                                Data centers
+                            }</div>
+                        </div>
+                        <div class="tb-stat-value"><span class="num">
+                            if data.DataCenterCount == 1 {
+                                { data.SingleDataCenter }
+                            } else {
+                                { fmt.Sprintf("%d", data.DataCenterCount) }
+                            }
+                        </span></div>
+                        <div class="tb-stat-text">
+                            if data.RackCount == 1 {
+                                Rack { data.SingleRack }
+                            } else {
+                                { fmt.Sprintf("%d racks", data.RackCount) }
+                            }
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
-                <div class="card border-left-info shadow h-100 py-2">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card tb-stat h-100">
                     <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                    if data.DataCenterCount == 1 {
-                                        Data Center
-                                    } else {
-                                        Data Centers
-                                    }
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    if data.DataCenterCount == 1 {
-                                        {data.SingleDataCenter}
-                                    } else {
-                                        {fmt.Sprintf("%d", data.DataCenterCount)}
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-building icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="subheader">if data.DiskTypeCount == 1 {
+                                Disk type
+                            } else {
+                                Disk types
+                            }</div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
-                <div class="card border-left-secondary shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
-                                    if data.RackCount == 1 {
-                                        Rack
-                                    } else {
-                                        Racks
-                                    }
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    if data.RackCount == 1 {
-                                        {data.SingleRack}
-                                    } else {
-                                        {fmt.Sprintf("%d", data.RackCount)}
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-server icon-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
-                <div class="card border-left-dark shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
-                                    if data.DiskTypeCount == 1 {
-                                        Disk Type
-                                    } else {
-                                        Disk Types
-                                    }
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    if data.DiskTypeCount == 1 {
-                                        {data.SingleDiskType}
-                                    } else {
-                                        {strings.Join(data.AllDiskTypes, ", ")}
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-device-hdd icon-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
-                <div class="card border-left-purple shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-purple text-uppercase mb-1">
-                                    if data.VersionCount == 1 {
-                                        Version
-                                    } else {
-                                        Versions
-                                    }
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    if data.VersionCount == 1 {
-                                        {data.SingleVersion}
-                                    } else {
-                                        {strings.Join(data.AllVersions, ", ")}
-                                    }
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-diagram-3 icon-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
-                <div class="card border-left-warning shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                    Total Size
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {formatBytes(data.TotalSize)}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-graph-up icon-2x text-gray-300"></i>
-                            </div>
+                        <div class="tb-stat-value"><span class="num">
+                            if data.DiskTypeCount == 1 {
+                                { data.SingleDiskType }
+                            } else {
+                                { strings.Join(data.AllDiskTypes, ", ") }
+                            }
+                        </span></div>
+                        <div class="tb-stat-text">
+                            if data.VersionCount == 1 {
+                                Volume version { data.SingleVersion }
+                            } else {
+                                { "Versions " + strings.Join(data.AllVersions, ", ") }
+                            }
                         </div>
                     </div>
                 </div>
@@ -353,10 +277,10 @@ templ ClusterVolumes(data dash.ClusterVolumesData) {
                                         }
                                                                 <td>{formatBytes(int64(volume.Size))}</td>
                         <td>
-                            <div class="d-flex align-items-center">
-                                <div class="progress me-2" style="width: 80px; height: 16px; background-color: #e9ecef;">
-                                    <!-- Active data (green) -->
-                                    <div class="progress-bar bg-success" role="progressbar" 
+                            <div class="tb-cell-meter">
+                                <span class="tb-progress is-split" style="width: 80px;">
+                                    <!-- Active data -->
+                                    <span role="progressbar" 
                                          style={fmt.Sprintf("width: %.1f%%", 
                                              func() float64 {
                                                  if volume.Size > 0 {
@@ -368,9 +292,9 @@ templ ClusterVolumes(data dash.ClusterVolumesData) {
                                                  return 0
                                              }())}
                                          title={fmt.Sprintf("Active: %s", formatBytes(int64(volume.Size - volume.DeletedByteCount)))}>
-                                    </div>
-                                    <!-- Garbage data (red) -->
-                                    <div class="progress-bar bg-danger" role="progressbar" 
+                                    </span>
+                                    <!-- Garbage data -->
+                                    <span class="is-garbage" role="progressbar" 
                                          style={fmt.Sprintf("width: %.1f%%", 
                                              func() float64 {
                                                  if volume.Size > 0 && volume.DeletedByteCount > 0 {
@@ -382,9 +306,9 @@ templ ClusterVolumes(data dash.ClusterVolumesData) {
                                                  return 0
                                              }())}
                                          title={fmt.Sprintf("Garbage: %s", formatBytes(int64(volume.DeletedByteCount)))}>
-                                    </div>
-                                </div>
-                                <small class="text-muted">
+                                    </span>
+                                </span>
+                                <small class="num">
                                     {func() string {
                                         if data.VolumeSizeLimit > 0 {
                                             return fmt.Sprintf("%.0f%%", float64(volume.Size)/float64(data.VolumeSizeLimit)*100)
